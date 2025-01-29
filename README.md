@@ -25,11 +25,14 @@ An offline app for editing and maintaining lists of Magic the Gathering cards.
   - good user story for describing changes
   - interface with CubeCobra so that changes/blogs show changes in Moxcel
   - good fork/merge/rebase UI
+- List comparison
+- scryfall-compatible search
+- active project context that you can access from any card/search/comparison
 - Supported File Types
   - common list file types
     - card name deck list (with or without versions and quantities)
     - cubecobra csv
-    - [ ] talk to Anthony Maddox about stuff from his list formatter tool
+    - [ ] talk to Anthony Mattox about stuff from his list formatter tool
   - custom structured list file type
     - probably json
     - maybe some csv thing can be a basic representation
