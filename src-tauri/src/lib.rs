@@ -1,4 +1,3 @@
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
 use scryfall;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -52,6 +51,7 @@ fn parse_card_file(path: &str) -> String {
     return parse_cards(&contents);
 }
 
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
