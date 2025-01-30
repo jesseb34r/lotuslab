@@ -2,7 +2,7 @@ import { For, Show, createSignal } from "solid-js";
 import { Button } from "@kobalte/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
-import { ScryfallColors, ScryfallImageUris } from "@scryfall/api-types";
+import type { ScryfallColors, ScryfallImageUris } from "@scryfall/api-types";
 import { Portal } from "solid-js/web";
 
 type Card = {
@@ -22,7 +22,7 @@ const getFilePath = async () => {
 const parseCardList = async (path: string): Promise<Card[] | undefined> => {
   const response: string = await invoke("parse_card_file", { path });
 
-  if (response == "Error") {
+  if (response === "Error") {
     console.error("Error parsing file");
     return undefined;
   }
@@ -43,7 +43,7 @@ export const ImportListComponent = () => {
 
     if (filePath) {
       setLoaded(true);
-      const result = await parseCardList(filePath.path);
+      const result = await parseCardList(filePath);
 
       if (result instanceof Error) {
         console.error(result);
@@ -69,10 +69,7 @@ export const ImportListComponent = () => {
   };
 
   return (
-    <main
-      id="main"
-      class="flex min-h-screen justify-center bg-neutral-700 p-20"
-    >
+    <main id="main" class="flex min-h-screen justify-center bg-neutral-700 p-20">
       <Show
         when={loaded()}
         fallback={
@@ -91,10 +88,11 @@ export const ImportListComponent = () => {
                 <li
                   onMouseMove={(e) => handleSetPreview(e, card)}
                   onMouseOver={() => setShowPreview(true)}
+                  onFocus={() => {}}
                   onMouseLeave={() => setShowPreview(false)}
                   class="cursor-pointer"
                 >
-                  {card.quantity + " " + card.name}
+                  {`${card.quantity} ${card.name}`}
                 </li>
               )}
             </For>
@@ -117,6 +115,7 @@ export const ImportListComponent = () => {
                 "pointer-events": "none",
               }}
               src={previewImgUri()}
+              alt="card preview"
             />
           </Portal>
         </Show>
