@@ -40,3 +40,17 @@ An offline app for editing and maintaining lists of Magic the Gathering cards.
   - CubeCobra
   - Draftmancer
   - Moxfield and other deckbuilding sites
+  
+## Contributing
+prerequisites:
+- git
+- bun
+- rust
+
+fork this repo and contribute through PRs
+
+in the project root:
+```bash
+bun install
+bun tauri dev
+```
