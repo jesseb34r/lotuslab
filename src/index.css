@@ -2,5 +2,9 @@
 /* @theme {
     --color-\*: initial;
 } */
-@import "tailwindcss-radix-colors/dist/red.css";
+@import "tailwindcss-radix-colors/dist/teal.css";
+@import "tailwindcss-radix-colors/dist/gray.css";
+@import "tailwindcss-radix-colors/dist/tomato.css";
+@import "tailwindcss-radix-colors/dist/amber.css";
+@import "tailwindcss-radix-colors/dist/grass.css";
 @plugin "@kobalte/tailwindcss";

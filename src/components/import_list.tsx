@@ -69,57 +69,55 @@ export const ImportListComponent = () => {
   };
 
   return (
-    <main id="main" class="flex min-h-screen justify-center bg-neutral-700 p-20">
-      <Show
-        when={loaded()}
-        fallback={
-          <Button.Root
-            onClick={() => handleImportClick()}
-            class="inline-flex h-10 content-center items-center rounded bg-blue-600 px-2 py-1 text-neutral-50 outline-none transition duration-75 hover:bg-blue-500 focus-visible:outline-offset-1 focus-visible:outline-blue-500 active:bg-blue-400"
-          >
-            Import File
-          </Button.Root>
-        }
-      >
-        <div class="w-full flex-grow whitespace-pre-wrap rounded bg-neutral-600 px-2 py-1">
-          <ul class="flex flex-col items-start">
-            <For each={cardList()}>
-              {(card) => (
-                <li
-                  onMouseMove={(e) => handleSetPreview(e, card)}
-                  onMouseOver={() => setShowPreview(true)}
-                  onFocus={() => {}}
-                  onMouseLeave={() => setShowPreview(false)}
-                  class="cursor-pointer"
-                >
-                  {`${card.quantity} ${card.name}`}
-                </li>
-              )}
-            </For>
-          </ul>
-        </div>
+    <Show
+      when={loaded()}
+      fallback={
         <Button.Root
-          onClick={() => setLoaded(false)}
+          onClick={() => handleImportClick()}
           class="inline-flex h-10 content-center items-center rounded bg-blue-600 px-2 py-1 text-neutral-50 outline-none transition duration-75 hover:bg-blue-500 focus-visible:outline-offset-1 focus-visible:outline-blue-500 active:bg-blue-400"
         >
-          Reset
+          Import File
         </Button.Root>
-        <Show when={showPreview()}>
-          <Portal>
-            <img
-              ref={setPreviewRef}
-              class="fixed aspect-[5/7] h-80 rounded-xl"
-              style={{
-                left: `${previewOffset()!.x}px`,
-                top: `${previewOffset()!.y}px`,
-                "pointer-events": "none",
-              }}
-              src={previewImgUri()}
-              alt="card preview"
-            />
-          </Portal>
-        </Show>
+      }
+    >
+      <div class="w-full flex-grow whitespace-pre-wrap rounded bg-neutral-600 px-2 py-1">
+        <ul class="flex flex-col items-start">
+          <For each={cardList()}>
+            {(card) => (
+              <li
+                onMouseMove={(e) => handleSetPreview(e, card)}
+                onMouseOver={() => setShowPreview(true)}
+                onFocus={() => {}}
+                onMouseLeave={() => setShowPreview(false)}
+                class="cursor-pointer"
+              >
+                {`${card.quantity} ${card.name}`}
+              </li>
+            )}
+          </For>
+        </ul>
+      </div>
+      <Button.Root
+        onClick={() => setLoaded(false)}
+        class="inline-flex h-10 content-center items-center rounded bg-blue-600 px-2 py-1 text-neutral-50 outline-none transition duration-75 hover:bg-blue-500 focus-visible:outline-offset-1 focus-visible:outline-blue-500 active:bg-blue-400"
+      >
+        Reset
+      </Button.Root>
+      <Show when={showPreview()}>
+        <Portal>
+          <img
+            ref={setPreviewRef}
+            class="fixed aspect-[5/7] h-80 rounded-xl"
+            style={{
+              left: `${previewOffset()!.x}px`,
+              top: `${previewOffset()!.y}px`,
+              "pointer-events": "none",
+            }}
+            src={previewImgUri()}
+            alt="card preview"
+          />
+        </Portal>
       </Show>
-    </main>
+    </Show>
   );
 };
