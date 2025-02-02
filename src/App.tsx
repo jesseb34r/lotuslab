@@ -1,5 +1,4 @@
-import { ImportListComponent } from "./components/import_list";
-import HomePage from "./pages/home_page";
+import { HomePage } from "./pages/home_page";
 
 function App() {
   return (

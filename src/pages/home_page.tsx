@@ -1,4 +1,4 @@
-export default function HomePage() {
+export function HomePage() {
   return (
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
       <h1 class="text-teal-10 text-4xl mb-6 text-center">Moxcel</h1>
