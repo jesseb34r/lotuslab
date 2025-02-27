@@ -9,13 +9,13 @@ export type CardList = {
   id: string;
   name: string;
   description: string;
-  list: Card[];
+  cards: Card[];
   created_at: string;
   modified_at: string;
 };
 
 // Naively parse a list of cards and fetch them from the scryfall api.
-export async function list_parse_from_string(input_list: string): Promise<CardList["list"]> {
+export async function cards_parse_from_string(input_list: string): Promise<CardList["cards"]> {
   const lines = input_list
     .split("\n")
     .map((line) => line.trim())

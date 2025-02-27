@@ -1,4 +1,4 @@
-import { list_parse_from_string } from "../utils/card_list";
+import { cards_parse_from_string } from "../utils/card_list";
 
 console.log("Starting test...");
 test_list_parsing()
@@ -17,7 +17,7 @@ Island
 
   try {
     console.log("Parsing card list...");
-    const parsed_list = await list_parse_from_string(sample_card_list);
+    const parsed_list = await cards_parse_from_string(sample_card_list);
     console.log("Successfully parsed list:");
     console.log(JSON.stringify(parsed_list, null, 2));
     console.log(`Found ${parsed_list.length} unique cards`);
