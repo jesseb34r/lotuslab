@@ -6,6 +6,7 @@ export type Card = {
 };
 
 export type CardList = {
+  id: string;
   name: string;
   description: string;
   list: Card[];
@@ -14,16 +15,13 @@ export type CardList = {
 };
 
 // Naively parse a list of cards and fetch them from the scryfall api.
-export async function list_parse_from_string(input_list: string): Promise<CardList> {
+export async function list_parse_from_string(input_list: string): Promise<CardList["list"]> {
   const lines = input_list
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.trim() !== "");
 
-  const name = "Card List"; // Default name, could be overridden
-  const description = "Imported card list"; // Default description
   const list: Card[] = [];
-  const now = new Date().toISOString();
 
   for (const line of lines) {
     // Skip empty lines or comments
@@ -54,13 +52,7 @@ export async function list_parse_from_string(input_list: string): Promise<CardLi
   }
 
   // Return a promise that will resolve to the card list
-  return {
-    name: name,
-    description: description,
-    list: list,
-    created_at: now,
-    modified_at: now,
-  };
+  return list;
 }
 
 // Fetch a single card from Scryfall API.
