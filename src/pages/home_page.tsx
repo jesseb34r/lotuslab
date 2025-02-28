@@ -1,4 +1,4 @@
-import { createSignal, createUniqueId, Match, Switch } from "solid-js";
+import { createResource, createSignal, createUniqueId, For, Match, Show, Switch } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 
 import { Button } from "@kobalte/core/button";
@@ -8,8 +8,11 @@ import { ToggleGroup } from "@kobalte/core/toggle-group";
 
 import { cards_parse_from_string, type CardList } from "../utils/card_list.ts";
 import { set_active_list } from "../index.tsx";
+import { initialize_app_directory, load_all_lists, save_list } from "../utils/file_operations.ts";
 
 export function HomePage() {
+  const [lists, { refetch: _ }] = createResource(fetchLists);
+
   const [is_import_dialog_open, set_is_import_dialog_open] = createSignal(false);
   const [import_from, set_import_from] = createSignal<"blank" | "paste" | "file">("blank");
   const [list_name, set_list_name] = createSignal("");
@@ -42,6 +45,9 @@ export function HomePage() {
         break;
       }
     }
+
+    await save_list(new_list);
+    // refetch_lists(); // is this needed if I'm immedietely navigating?
 
     set_active_list(new_list);
     navigate("/list", { replace: true });
@@ -171,8 +177,38 @@ export function HomePage() {
           </Dialog>
         </div>
         <hr class="text-gray-dim" />
-        <div>All my decks</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          <Show when={!lists.loading} fallback={<div>Loading lists...</div>}>
+            <Show
+              when={lists()?.length}
+              fallback={<div>No lists found. Create one to get started!</div>}
+            >
+              <For each={lists()}>
+                {(list) => (
+                  <Button
+                    class="p-4 rounded bg-gray-3 dark:bg-graydark-3 cursor-pointer"
+                    onMouseDown={() => {
+                      set_active_list(list);
+                      navigate("/list");
+                    }}
+                  >
+                    <h3 class="text-lg font-medium">{list.name}</h3>
+                    <p class="text-sm text-gray-dim">
+                      {list.cards.length} cards • Modified{" "}
+                      {new Date(list.modified_at).toLocaleDateString()}
+                    </p>
+                  </Button>
+                )}
+              </For>
+            </Show>
+          </Show>
+        </div>
       </div>
     </main>
   );
+}
+
+async function fetchLists() {
+  await initialize_app_directory();
+  return await load_all_lists();
 }
