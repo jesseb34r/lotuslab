@@ -3,10 +3,10 @@ import { createSignal, For, Show } from "solid-js";
 import { Link } from "@kobalte/core/link";
 import type { ScryfallCard } from "@scryfall/api-types";
 
-import { active_list } from "../index.tsx";
+import { active_project } from "../index.tsx";
 import { Portal } from "solid-js/web";
 
-export function ListPage() {
+export function ProjectPage() {
   const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
   const [preview_show, set_preview_show] = createSignal(false);
   const [preview_offset, set_preview_offset] = createSignal({ x: 0, y: 0 });
@@ -31,13 +31,13 @@ export function ListPage() {
         <Link as={A} href="/" class="text-grass-11 dark:text-grassdark-11 hover:underline">
           ← Back to Home
         </Link>
-        <Show when={active_list()}>
-          {(list) => <h1 class="text-2xl font-medium">{list().name}</h1>}
+        <Show when={active_project()}>
+          {(project) => <h1 class="text-2xl font-medium">{project().name}</h1>}
         </Show>
       </div>
 
-      <Show when={active_list()} fallback={<div>No list loaded</div>}>
-        {(list) => (
+      <Show when={active_project()} fallback={<div>No project loaded</div>}>
+        {(project) => (
           <div class="w-full max-w-3xl">
             <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
               {/* Header */}
@@ -46,7 +46,7 @@ export function ListPage() {
 
               {/* Card list */}
               <ul class="flex flex-col items-start">
-                <For each={list().cards}>
+                <For each={project().lists[0].cards}>
                   {(card) => (
                     <li
                       onMouseMove={(e) =>
@@ -66,7 +66,7 @@ export function ListPage() {
 
             {/* Total count */}
             <div class="mt-4 text-sm text-gray-11 dark:text-graydark-11">
-              Total Cards: {list().cards.reduce((sum, card) => sum + card.quantity, 0)}
+              Total Cards: {project().lists[0].cards.reduce((sum, card) => sum + card.quantity, 0)}
             </div>
           </div>
         )}
