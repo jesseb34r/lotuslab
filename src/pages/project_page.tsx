@@ -1,10 +1,11 @@
 import { A } from "@solidjs/router";
-import { createSignal, For, Show } from "solid-js";
+import { type Component, createSignal, For, Show } from "solid-js";
+import { Portal } from "solid-js/web";
 import { Link } from "@kobalte/core/link";
 import type { ScryfallCard } from "@scryfall/api-types";
 
 import { active_project } from "../index.tsx";
-import { Portal } from "solid-js/web";
+import type { Card } from "../lib/project.ts";
 
 export function ProjectPage() {
   const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
@@ -12,7 +13,10 @@ export function ProjectPage() {
   const [preview_offset, set_preview_offset] = createSignal({ x: 0, y: 0 });
   const [preview_img_uri, set_preview_img_uri] = createSignal("");
 
-  function handle_set_preview(e: MouseEvent, card: ScryfallCard.AnySingleFaced) {
+  function handle_set_preview(
+    e: MouseEvent,
+    card: ScryfallCard.AnySingleFaced,
+  ) {
     const offsetX =
       e.x + preview_ref()!.getBoundingClientRect().width > window.innerWidth
         ? window.innerWidth - preview_ref()!.getBoundingClientRect().width
@@ -25,50 +29,62 @@ export function ProjectPage() {
     set_preview_img_uri(card.image_uris!.normal);
   }
 
-  return (
-    <main class="flex flex-col p-8">
-      <div class="flex items-center gap-4 mb-6">
-        <Link as={A} href="/" class="text-grass-11 dark:text-grassdark-11 hover:underline">
-          ← Back to Home
-        </Link>
-        <Show when={active_project()}>
-          {(project) => <h1 class="text-2xl font-medium">{project().name}</h1>}
-        </Show>
+  const TableView: Component<{ list: Card[] }> = (props) => (
+    <div class="w-full max-w-3xl">
+      <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
+        {/* Header */}
+        <div class="font-medium text-gray-11 dark:text-graydark-11">#</div>
+        <div class="font-medium text-gray-11 dark:text-graydark-11">
+          Card Name
+        </div>
+
+        {/* Card list */}
+        <ul class="flex flex-col items-start">
+          <For each={props.list}>
+            {(card) => (
+              <li
+                onMouseMove={(e) =>
+                  handle_set_preview(
+                    e,
+                    card.card as ScryfallCard.AnySingleFaced,
+                  )
+                }
+                onMouseOver={() => set_preview_show(true)}
+                onFocus={() => {}}
+                onMouseLeave={() => set_preview_show(false)}
+                class="cursor-pointer"
+              >
+                {`${card.quantity} ${card.card.name}`}
+              </li>
+            )}
+          </For>
+        </ul>
       </div>
 
+      {/* Total count */}
+      <div class="mt-4 text-sm text-gray-11 dark:text-graydark-11">
+        Total Cards: {props.list.reduce((sum, card) => sum + card.quantity, 0)}
+      </div>
+    </div>
+  );
+
+  return (
+    <main class="flex flex-col p-8">
       <Show when={active_project()} fallback={<div>No project loaded</div>}>
         {(project) => (
-          <div class="w-full max-w-3xl">
-            <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-              {/* Header */}
-              <div class="font-medium text-gray-11 dark:text-graydark-11">#</div>
-              <div class="font-medium text-gray-11 dark:text-graydark-11">Card Name</div>
-
-              {/* Card list */}
-              <ul class="flex flex-col items-start">
-                <For each={project().lists[0].cards}>
-                  {(card) => (
-                    <li
-                      onMouseMove={(e) =>
-                        handle_set_preview(e, card.card as ScryfallCard.AnySingleFaced)
-                      }
-                      onMouseOver={() => set_preview_show(true)}
-                      onFocus={() => {}}
-                      onMouseLeave={() => set_preview_show(false)}
-                      class="cursor-pointer"
-                    >
-                      {`${card.quantity} ${card.card.name}`}
-                    </li>
-                  )}
-                </For>
-              </ul>
+          <>
+            <div class="flex items-center gap-4 mb-6">
+              <Link
+                as={A}
+                href="/"
+                class="text-grass-11 dark:text-grassdark-11 hover:underline"
+              >
+                ← Back to Home
+              </Link>
+              <h1 class="text-2xl font-medium">{project().name}</h1>
             </div>
-
-            {/* Total count */}
-            <div class="mt-4 text-sm text-gray-11 dark:text-graydark-11">
-              Total Cards: {project().lists[0].cards.reduce((sum, card) => sum + card.quantity, 0)}
-            </div>
-          </div>
+            <TableView list={project().lists[0].cards} />
+          </>
         )}
       </Show>
       <Show when={preview_show()}>
