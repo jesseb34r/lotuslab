@@ -30,35 +30,58 @@ export function ProjectPage() {
   }
 
   const TableView: Component<{ list: Card[] }> = (props) => (
-    <div class="w-full max-w-3xl">
-      <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-        {/* Header */}
-        <div class="font-medium text-gray-11 dark:text-graydark-11">#</div>
-        <div class="font-medium text-gray-11 dark:text-graydark-11">
-          Card Name
+    <div class="w-full max-w-5xl">
+      <div class="border overflow-hidden">
+        <div class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b bg-gray-1 dark:bg-graydark-1">
+          {/* Header */}
+          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
+            #
+          </div>
+          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
+            Name
+          </div>
+          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
+            Mana Cost
+          </div>
+          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
+            Tags
+          </div>
         </div>
 
         {/* Card list */}
-        <ul class="flex flex-col items-start">
-          <For each={props.list}>
-            {(card) => (
-              <li
-                onMouseMove={(e) =>
-                  handle_set_preview(
-                    e,
-                    card.card as ScryfallCard.AnySingleFaced,
-                  )
-                }
-                onMouseOver={() => set_preview_show(true)}
-                onFocus={() => {}}
-                onMouseLeave={() => set_preview_show(false)}
-                class="cursor-pointer"
-              >
-                {`${card.quantity} ${card.card.name}`}
-              </li>
-            )}
-          </For>
-        </ul>
+        <For each={props.list}>
+          {(card) => (
+            <div
+              class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b last:border-b-0 hover:bg-gray-2 dark:hover:bg-graydark-2 transition-colors"
+              onMouseMove={(e) =>
+                handle_set_preview(e, card.card as ScryfallCard.AnySingleFaced)
+              }
+              onMouseOver={() => set_preview_show(true)}
+              onMouseLeave={() => set_preview_show(false)}
+              onFocus={() => {}}
+            >
+              {/* Quantity column */}
+              <div class="p-3 flex items-center cursor-pointer">
+                {card.quantity}
+              </div>
+
+              {/* Name column */}
+              <div class="p-3 flex items-center cursor-pointer">
+                {card.card.name}
+              </div>
+
+              {/* Mana Cost column */}
+              <div class="p-3 flex items-center font-mono">
+                {card.card.mana_cost || ""}
+              </div>
+
+              {/* Tags column (stub for future) */}
+              <div class="p-3 flex items-center text-gray-9 dark:text-graydark-9 italic">
+                {/* Empty for now - will hold tags in the future */}
+              </div>
+            </div>
+          )}
+        </For>
       </div>
 
       {/* Total count */}
@@ -70,7 +93,18 @@ export function ProjectPage() {
 
   return (
     <main class="flex flex-col p-8">
-      <Show when={active_project()} fallback={<div>No project loaded</div>}>
+      <Show
+        when={active_project()}
+        fallback={
+          <Link
+            as={A}
+            href="/"
+            class="text-grass-11 dark:text-grassdark-11 hover:underline"
+          >
+            ← Back to Home
+          </Link>
+        }
+      >
         {(project) => (
           <>
             <div class="flex items-center gap-4 mb-6">
