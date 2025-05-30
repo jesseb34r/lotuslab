@@ -4,6 +4,7 @@ import { Router, Route } from "@solidjs/router";
 
 import "./index.css";
 
+import { AppHeader } from "./components/app_header";
 import { HomePage } from "./pages/home_page";
 import { ProjectPage } from "./pages/project_page";
 import { NotFound } from "./pages/404";
@@ -11,7 +12,10 @@ import { createSignal, type ParentComponent } from "solid-js";
 import type { Project } from "./lib/project";
 
 const AppLayout: ParentComponent = (props) => (
-  <div class="min-h-screen bg-gray-app text-gray-normal">{props.children}</div>
+  <div class="min-h-screen bg-gray-app text-gray-normal">
+    <AppHeader />
+    {props.children}
+  </div>
 );
 
 // Global state. Probably change this later to a better structure.
