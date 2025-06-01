@@ -121,30 +121,30 @@ export function HomePage() {
                     <ToggleGroup.Item
                       value="blank"
                       class="
-                          px-2 py-1 rounded cursor-pointer
-                          bg-gray-4 dark:bg-graydark-4
-                          hover:bg-gray-5 dark:hover:bg-graydark-5
-                          data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                        px-2 py-1 rounded cursor-pointer
+                        bg-gray-4 dark:bg-graydark-4
+                        hover:bg-gray-5 dark:hover:bg-graydark-5
+                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
                     >
                       Blank
                     </ToggleGroup.Item>
                     <ToggleGroup.Item
                       value="paste"
                       class="
-                          px-2 py-1 rounded cursor-pointer
-                          bg-gray-4 dark:bg-graydark-4
-                          hover:bg-gray-5 dark:hover:bg-graydark-5
-                          data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                        px-2 py-1 rounded cursor-pointer
+                        bg-gray-4 dark:bg-graydark-4
+                        hover:bg-gray-5 dark:hover:bg-graydark-5
+                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
                     >
                       Paste
                     </ToggleGroup.Item>
                     <ToggleGroup.Item
                       value="file"
                       class="
-                          px-2 py-1 rounded cursor-pointer
-                          bg-gray-4 dark:bg-graydark-4
-                          hover:bg-gray-5 dark:hover:bg-graydark-5
-                          data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                        px-2 py-1 rounded cursor-pointer
+                        bg-gray-4 dark:bg-graydark-4
+                        hover:bg-gray-5 dark:hover:bg-graydark-5
+                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
                     >
                       Import File
                     </ToggleGroup.Item>
@@ -190,8 +190,7 @@ export function HomePage() {
                     class="
                       px-2 py-1 rounded self-end cursor-pointer
                       bg-grass-4 dark:bg-grassdark-4
-                      hover:bg-grass-5 dark:hover:bg-grassdark-5
-                    "
+                      hover:bg-grass-5 dark:hover:bg-grassdark-5"
                   >
                     Create
                   </Button>
