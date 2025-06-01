@@ -1,7 +1,5 @@
-import { A } from "@solidjs/router";
 import { type Component, createSignal, For, Show } from "solid-js";
 import { Portal } from "solid-js/web";
-import { Link } from "@kobalte/core/link";
 import type { ScryfallCard } from "@scryfall/api-types";
 
 import { active_project } from "../index.tsx";
