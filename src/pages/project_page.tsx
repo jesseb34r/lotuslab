@@ -93,30 +93,10 @@ export function ProjectPage() {
 
   return (
     <main class="flex flex-col p-8">
-      <Show
-        when={active_project()}
-        fallback={
-          <Link
-            as={A}
-            href="/"
-            class="text-grass-11 dark:text-grassdark-11 hover:underline"
-          >
-            ← Back to Home
-          </Link>
-        }
-      >
+      <Show when={active_project()}>
         {(project) => (
           <>
-            <div class="flex items-center gap-4 mb-6">
-              <Link
-                as={A}
-                href="/"
-                class="text-grass-11 dark:text-grassdark-11 hover:underline"
-              >
-                ← Back to Home
-              </Link>
-              <h1 class="text-2xl font-medium">{project().name}</h1>
-            </div>
+            <h1 class="text-2xl font-medium">{project().name}</h1>
             <TableView list={project().lists[0].cards} />
           </>
         )}

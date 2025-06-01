@@ -1,46 +1,57 @@
 import { Button } from "@kobalte/core";
+import { useNavigate } from "@solidjs/router";
 import type { Component } from "solid-js";
 
-export const AppHeader: Component = () => (
-  <nav>
-    <ul class="grid grid-cols-3 w-full items-center p-2">
-      <li class="justify-self-start">
-        <Button.Root
-          class="
-          inline-flex content-center items-center rounded
-          p-2 gap-1
-          text-gray-11 dark:text-graydark-11
-          outline-none transition duration-75 cursor-pointer"
-        >
-          <HomeIcon class="size-6 text-gray-11 hover:text-gray-12 dark:text-graydark-11 dark:hover:text-graydark-12 stroke-2" />
-        </Button.Root>
-      </li>
-      <li class="justify-self-center">
-        <Button.Root
-          class="
-          inline-flex content-center items-center rounded
-          py-1 px-2 gap-1 w-md
-          text-gray-11 dark:text-graydark-11 bg-gray-3 dark:bg-graydark-3 hover:bg-gray-4 dark:hover:bg-graydark-4
-          outline-none transition duration-75 cursor-pointer"
-        >
-          <MagnifyingGlassIcon class="size-4 stroke-2" />
-          Search all cards
-        </Button.Root>
-      </li>
-      <li class="justify-self-end">
-        <Button.Root
-          class="
-            inline-flex content-center items-center rounded
-            p-2 gap-1
-            text-gray-11 dark:text-graydark-11
-            outline-none transition duration-75 cursor-pointer"
-        >
-          <GearIcon class="size-6 text-gray-11 hover:text-gray-12 dark:text-graydark-11 dark:hover:text-graydark-12 stroke-2" />
-        </Button.Root>
-      </li>
-    </ul>
-  </nav>
-);
+export const AppHeader: Component = () => {
+  const navigate = useNavigate();
+
+  return (
+    <nav>
+      <ul class="grid grid-cols-3 w-full items-center p-2">
+        <li class="justify-self-start">
+          <Button.Root
+            onMouseDown={() => navigate("/", { replace: true })}
+            class="
+              inline-flex content-center items-center rounded
+              p-2 gap-1
+              text-gray-11 dark:text-graydark-11
+              outline-none transition duration-75 cursor-pointer
+            "
+          >
+            <HomeIcon class="size-6 text-gray-11 hover:text-gray-12 dark:text-graydark-11 dark:hover:text-graydark-12 stroke-2" />
+          </Button.Root>
+        </li>
+        <li class="justify-self-center">
+          <Button.Root
+            onMouseDown={() => navigate("/search", { replace: true })}
+            class="
+              inline-flex content-center items-center rounded
+              py-1 px-2 gap-1 w-md
+              text-gray-11 dark:text-graydark-11 bg-gray-3 dark:bg-graydark-3 hover:bg-gray-4 dark:hover:bg-graydark-4
+              outline-none transition duration-75 cursor-pointer
+            "
+          >
+            <MagnifyingGlassIcon class="size-4 stroke-2" />
+            Search all cards
+          </Button.Root>
+        </li>
+        <li class="justify-self-end">
+          <Button.Root
+            onMouseDown={() => navigate("/settings", { replace: true })}
+            class="
+              inline-flex content-center items-center rounded
+              p-2 gap-1
+              text-gray-11 dark:text-graydark-11
+              outline-none transition duration-75 cursor-pointer
+            "
+          >
+            <GearIcon class="size-6 text-gray-11 hover:text-gray-12 dark:text-graydark-11 dark:hover:text-graydark-12 stroke-2" />
+          </Button.Root>
+        </li>
+      </ul>
+    </nav>
+  );
+};
 
 const MagnifyingGlassIcon: Component<{ class: string }> = (props) => (
   <svg
