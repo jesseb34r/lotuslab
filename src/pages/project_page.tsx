@@ -89,13 +89,105 @@ export function ProjectPage() {
     </div>
   );
 
+  const DeckView: Component<{ list: Card[] }> = (props) => {
+    const type_groups: Record<string, Card[]> = {};
+
+    const get_type = (type_line: string): string => {
+      const before_subtypes = type_line.split("—")[0].trim();
+      const words = before_subtypes.split(" ");
+      return words[words.length - 1];
+    };
+
+    // Group cards by their type line
+    for (const card of props.list) {
+      if (card.card.layout !== "normal") {
+        if (!type_groups.misc) {
+          type_groups.misc = [];
+        }
+        type_groups.misc.push(card);
+      } else {
+        const type = get_type(card.card.type_line);
+        if (!type_groups[type]) {
+          type_groups[type] = [];
+        }
+        type_groups[type].push(card);
+      }
+    }
+
+    // Sort type groups by priority (creatures, instants, sorceries, etc.)
+    const type_priority = [
+      "Creature",
+      "Instant",
+      "Sorcery",
+      "Enchantment",
+      "Artifact",
+      "Planeswalker",
+      "Battle",
+      "Land",
+    ];
+    const sorted_type_keys = Object.keys(type_groups).sort((a, b) => {
+      const a_priority = type_priority.findIndex((type) => a.includes(type));
+      const b_priority = type_priority.findIndex((type) => b.includes(type));
+
+      if (a_priority === -1 && b_priority === -1) return a.localeCompare(b);
+      if (a_priority === -1) return 1;
+      if (b_priority === -1) return -1;
+
+      return a_priority - b_priority;
+    });
+
+    return (
+      <div class="w-full max-w-3xl">
+        <For each={sorted_type_keys}>
+          {(type_key) => (
+            <div class="mb-6">
+              <h3 class="text-lg font-medium mb-3 text-gray-12 dark:text-graydark-12">
+                {type_key} (
+                {type_groups[type_key].reduce(
+                  (sum, card) => sum + card.quantity,
+                  0,
+                )}
+                )
+              </h3>
+              <div class="space-y-1">
+                <For each={type_groups[type_key]}>
+                  {(card) => (
+                    <div
+                      class="flex items-center gap-3 p-2 hover:bg-gray-2 dark:hover:bg-graydark-2 rounded transition-colors"
+                      onMouseMove={(e) =>
+                        handle_set_preview(
+                          e,
+                          card.card as ScryfallCard.AnySingleFaced,
+                        )
+                      }
+                      onMouseOver={() => set_preview_show(true)}
+                      onMouseLeave={() => set_preview_show(false)}
+                    >
+                      <span class="w-8 text-center text-sm">
+                        {card.quantity}
+                      </span>
+                      <span class="flex-1">{card.card.name}</span>
+                      <span class="font-mono text-sm">
+                        {card.card.mana_cost || ""}
+                      </span>
+                    </div>
+                  )}
+                </For>
+              </div>
+            </div>
+          )}
+        </For>
+      </div>
+    );
+  };
+
   return (
     <main class="flex flex-col p-8">
       <Show when={active_project()}>
         {(project) => (
           <>
             <h1 class="text-2xl font-medium">{project().name}</h1>
-            <TableView list={project().lists[0].cards} />
+            <DeckView list={project().lists[0].cards} />
           </>
         )}
       </Show>
