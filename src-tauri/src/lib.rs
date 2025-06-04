@@ -57,7 +57,7 @@ pub fn run() {
     let migrations = vec![Migration {
         version: 1,
         description: "create_initial_tables",
-        sql: "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);",
+        sql: include_str!("../migrations/001_initial_schema.sql"),
         kind: MigrationKind::Up,
     }];
 
