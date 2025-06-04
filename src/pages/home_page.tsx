@@ -67,7 +67,10 @@ export function HomePage() {
               >
                 <Dialog.Title class="text-2xl mb-4">New List</Dialog.Title>
                 <form
-                  onSubmit={handle_create_project}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handle_create_project();
+                  }}
                   class="flex flex-col items-stretch justify-center"
                 >
                   <TextField
