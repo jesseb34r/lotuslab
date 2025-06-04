@@ -64,6 +64,7 @@ pub fn run() {
             }
             Ok(())
         })
+        .plugin(tauri_plugin_sql::Builder::default().build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![parse_cards, parse_card_file])
