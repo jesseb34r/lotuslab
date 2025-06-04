@@ -2,6 +2,10 @@
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "linter": {
     "rules": {
+      "a11y": {
+        "useKeyWithMouseEvents": "off",
+        "useKeyWithClickEvents": "off"
+      },
       "correctness": {
         "noInvalidPositionAtImportRule": "off"
       },
