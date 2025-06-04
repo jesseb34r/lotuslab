@@ -11,7 +11,6 @@ import { SearchPage } from "./pages/search_page";
 import { SettingsPage } from "./pages/settings_page";
 import { NotFound } from "./pages/404";
 import { createSignal, type ParentComponent } from "solid-js";
-import type { Project } from "./lib/project";
 
 const AppLayout: ParentComponent = (props) => (
   <div class="min-h-screen bg-gray-app text-gray-normal">
@@ -21,7 +20,8 @@ const AppLayout: ParentComponent = (props) => (
 );
 
 // Global state. Probably change this later to a better structure.
-export const [active_project, set_active_project] = createSignal<Project>();
+export const [active_project_id, set_active_project_id] =
+  createSignal<number>();
 
 render(
   () => (

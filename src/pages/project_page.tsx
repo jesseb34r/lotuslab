@@ -2,7 +2,7 @@ import { type Component, createSignal, For, Show } from "solid-js";
 import { Portal } from "solid-js/web";
 import type { ScryfallCard } from "@scryfall/api-types";
 
-import { active_project } from "../index.tsx";
+import { active_project_id } from "../index.tsx";
 import type { Card } from "../lib/project.ts";
 
 export function ProjectPage() {
@@ -183,11 +183,11 @@ export function ProjectPage() {
 
   return (
     <main class="flex flex-col p-8">
-      <Show when={active_project()}>
-        {(project) => (
+      <Show when={active_project_id()}>
+        {(project_id) => (
           <>
-            <h1 class="text-2xl font-medium">{project().name}</h1>
-            <DeckView list={project().lists[0].cards} />
+            {/* <h1 class="text-2xl font-medium">{project().name}</h1> */}
+            {/* <DeckView list={project().lists[0].cards} /> */}
           </>
         )}
       </Show>

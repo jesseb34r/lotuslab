@@ -1,7 +1,6 @@
 import {
   createResource,
   createSignal,
-  createUniqueId,
   For,
   Match,
   Show,
@@ -14,59 +13,25 @@ import { Dialog } from "@kobalte/core/dialog";
 import { TextField } from "@kobalte/core/text-field";
 import { ToggleGroup } from "@kobalte/core/toggle-group";
 
-import { parse_card_list_from_string, type Project } from "../lib/project.ts";
-import { set_active_project } from "../index.tsx";
-import {
-  initialize_app_directory,
-  load_all_projects,
-  save_project,
-} from "../lib/file_operations.ts";
+import { set_active_project_id } from "../index.tsx";
+import { create_project, get_projects } from "../lib/db.ts";
 
 export function HomePage() {
-  const [projects, { refetch: _ }] = createResource(fetch_projects);
+  const [projects, { refetch: _ }] = createResource(get_projects);
 
   const [import_dialog_open, set_import_dialog_open] = createSignal(false);
   const [import_source, set_import_source] = createSignal<
     "blank" | "paste" | "file"
   >("blank");
-  const [project_name, set_project_name] = createSignal("");
+  const [new_project_name, set_new_project_name] = createSignal("");
   const [project_cards_pasted, set_project_cards_pasted] = createSignal("");
   const [project_cards_filepath, set_project_cards_filepath] = createSignal("");
 
   const navigate = useNavigate();
 
   async function handle_create_project() {
-    const now = new Date().toISOString();
-    const new_project: Project = {
-      id: createUniqueId(),
-      name: project_name(),
-      description: "",
-      lists: [],
-      created_at: now,
-      modified_at: now,
-    };
-
-    switch (import_source()) {
-      case "blank":
-        break;
-      case "paste": {
-        new_project.lists.push({
-          name: "main",
-          cards: await parse_card_list_from_string(project_cards_pasted()),
-        });
-        break;
-      }
-      case "file": {
-        // TODO
-        project_cards_filepath();
-        break;
-      }
-    }
-
-    await save_project(new_project);
-    // refetch_lists(); // is this needed if I'm immedietely navigating?
-
-    set_active_project(new_project);
+    const new_project_id = await create_project(new_project_name());
+    set_active_project_id(new_project_id);
     navigate("/project", { replace: true });
   }
 
@@ -106,8 +71,8 @@ export function HomePage() {
                   class="flex flex-col items-stretch justify-center"
                 >
                   <TextField
-                    value={project_name()}
-                    onChange={set_project_name}
+                    value={new_project_name()}
+                    onChange={set_new_project_name}
                     class="flex flex-col"
                   >
                     <TextField.Label>Name</TextField.Label>
@@ -211,15 +176,11 @@ export function HomePage() {
                   <Button
                     class="p-4 rounded bg-gray-3 dark:bg-graydark-3 cursor-pointer"
                     onMouseDown={() => {
-                      set_active_project(project);
+                      set_active_project_id(project.id);
                       navigate("/project");
                     }}
                   >
                     <h3 class="text-lg font-medium">{project.name}</h3>
-                    <p class="text-sm text-gray-dim">
-                      {project.lists[0].cards.length} cards • Modified{" "}
-                      {new Date(project.modified_at).toLocaleDateString()}
-                    </p>
                   </Button>
                 )}
               </For>
@@ -229,9 +190,4 @@ export function HomePage() {
       </div>
     </main>
   );
-}
-
-async function fetch_projects() {
-  await initialize_app_directory();
-  return await load_all_projects();
 }
