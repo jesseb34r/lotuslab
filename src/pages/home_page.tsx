@@ -1,4 +1,12 @@
-import { createResource, createSignal, createUniqueId, For, Match, Show, Switch } from "solid-js";
+import {
+  createResource,
+  createSignal,
+  createUniqueId,
+  For,
+  Match,
+  Show,
+  Switch,
+} from "solid-js";
 import { useNavigate } from "@solidjs/router";
 
 import { Button } from "@kobalte/core/button";
@@ -18,7 +26,9 @@ export function HomePage() {
   const [projects, { refetch: _ }] = createResource(fetch_projects);
 
   const [import_dialog_open, set_import_dialog_open] = createSignal(false);
-  const [import_source, set_import_source] = createSignal<"blank" | "paste" | "file">("blank");
+  const [import_source, set_import_source] = createSignal<
+    "blank" | "paste" | "file"
+  >("blank");
   const [project_name, set_project_name] = createSignal("");
   const [project_cards_pasted, set_project_cards_pasted] = createSignal("");
   const [project_cards_filepath, set_project_cards_filepath] = createSignal("");
@@ -65,7 +75,10 @@ export function HomePage() {
       <div class="flex flex-col gap-2">
         <div class="flex gap-20 items-end justify-between">
           <h2 class="text-xl">Lists</h2>
-          <Dialog open={import_dialog_open()} onOpenChange={set_import_dialog_open}>
+          <Dialog
+            open={import_dialog_open()}
+            onOpenChange={set_import_dialog_open}
+          >
             <Dialog.Trigger
               onMouseDown={() => set_import_dialog_open(true)}
               class="
@@ -108,30 +121,30 @@ export function HomePage() {
                     <ToggleGroup.Item
                       value="blank"
                       class="
-                          px-2 py-1 rounded cursor-pointer
-                          bg-gray-4 dark:bg-graydark-4
-                          hover:bg-gray-5 dark:hover:bg-graydark-5
-                          data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                        px-2 py-1 rounded cursor-pointer
+                        bg-gray-4 dark:bg-graydark-4
+                        hover:bg-gray-5 dark:hover:bg-graydark-5
+                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
                     >
                       Blank
                     </ToggleGroup.Item>
                     <ToggleGroup.Item
                       value="paste"
                       class="
-                          px-2 py-1 rounded cursor-pointer
-                          bg-gray-4 dark:bg-graydark-4
-                          hover:bg-gray-5 dark:hover:bg-graydark-5
-                          data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                        px-2 py-1 rounded cursor-pointer
+                        bg-gray-4 dark:bg-graydark-4
+                        hover:bg-gray-5 dark:hover:bg-graydark-5
+                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
                     >
                       Paste
                     </ToggleGroup.Item>
                     <ToggleGroup.Item
                       value="file"
                       class="
-                          px-2 py-1 rounded cursor-pointer
-                          bg-gray-4 dark:bg-graydark-4
-                          hover:bg-gray-5 dark:hover:bg-graydark-5
-                          data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                        px-2 py-1 rounded cursor-pointer
+                        bg-gray-4 dark:bg-graydark-4
+                        hover:bg-gray-5 dark:hover:bg-graydark-5
+                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
                     >
                       Import File
                     </ToggleGroup.Item>
@@ -177,8 +190,7 @@ export function HomePage() {
                     class="
                       px-2 py-1 rounded self-end cursor-pointer
                       bg-grass-4 dark:bg-grassdark-4
-                      hover:bg-grass-5 dark:hover:bg-grassdark-5
-                    "
+                      hover:bg-grass-5 dark:hover:bg-grassdark-5"
                   >
                     Create
                   </Button>
@@ -203,7 +215,7 @@ export function HomePage() {
                       navigate("/project");
                     }}
                   >
-                    <h3 class="text-lg font-medium">{project.lists[0].name}</h3>
+                    <h3 class="text-lg font-medium">{project.name}</h3>
                     <p class="text-sm text-gray-dim">
                       {project.lists[0].cards.length} cards • Modified{" "}
                       {new Date(project.modified_at).toLocaleDateString()}

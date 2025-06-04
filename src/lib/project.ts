@@ -78,3 +78,44 @@ async function fetchCard(cardName: string): Promise<ScryfallCard.Any | null> {
     return null;
   }
 }
+
+export type SortCriteria = {
+  primary: SortField;
+  secondary?: SortField;
+  direction: "asc" | "desc";
+};
+
+export type SortField = "type" | "cmc" | "color" | "name_alpha";
+
+enum CardType {
+  Creature = "Creature",
+  Planeswalker = "Planeswalker",
+  Instant = "Instant",
+  Sorcery = "Sorcery",
+  Artifact = "Artifact",
+  Enchantment = "Enchantment",
+  Battle = "Battle",
+  Land = "Land",
+}
+
+const type_order: Record<CardType, number> = {
+  [CardType.Creature]: 1,
+  [CardType.Planeswalker]: 2,
+  [CardType.Instant]: 3,
+  [CardType.Sorcery]: 4,
+  [CardType.Artifact]: 5,
+  [CardType.Enchantment]: 6,
+  [CardType.Battle]: 7,
+  [CardType.Land]: 8,
+};
+
+const get_type_order = (type_line: string) => {};
+
+const get_sort_key = (card: ScryfallCard.Any, field: SortField) => {
+  switch (field) {
+    case "type":
+
+    case "cmc":
+      return "cmc" in card ? card.cmc : 0;
+  }
+};
