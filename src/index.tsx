@@ -13,7 +13,7 @@ import { NotFound } from "./pages/404";
 import { createSignal, type ParentComponent } from "solid-js";
 
 const AppLayout: ParentComponent = (props) => (
-  <div class="min-h-screen bg-gray-app text-gray-normal">
+  <div class="min-h-screen bg-gray-app text-gray-normal select-none cursor-default">
     <AppHeader />
     {props.children}
   </div>
