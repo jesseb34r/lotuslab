@@ -57,7 +57,7 @@ export function HomePage() {
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
       <div class="flex flex-col gap-2">
         <div class="flex gap-20 items-end justify-between">
-          <h2 class="text-xl">Lists</h2>
+          <h2 class="text-xl">Projects</h2>
           <Dialog
             open={import_dialog_open()}
             onOpenChange={set_import_dialog_open}
@@ -83,7 +83,7 @@ export function HomePage() {
                   text-gray-normal
                 "
               >
-                <Dialog.Title class="text-2xl mb-4">New List</Dialog.Title>
+                <Dialog.Title class="text-2xl mb-4">New Project</Dialog.Title>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
