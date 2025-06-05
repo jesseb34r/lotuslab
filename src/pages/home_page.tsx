@@ -3,7 +3,7 @@ import {
   createSignal,
   For,
   Match,
-  Show,
+  Suspense,
   Switch,
 } from "solid-js";
 import { useNavigate } from "@solidjs/router";
@@ -13,11 +13,11 @@ import { Dialog } from "@kobalte/core/dialog";
 import { TextField } from "@kobalte/core/text-field";
 import { ToggleGroup } from "@kobalte/core/toggle-group";
 
-import { set_active_project_id } from "../index.tsx";
-import { create_project, get_projects } from "../lib/db.ts";
+import { active_project_id, set_active_project_id } from "../index.tsx";
+import { create_project, delete_project, get_projects } from "../lib/db.ts";
 
 export function HomePage() {
-  const [projects, { refetch: _ }] = createResource(get_projects);
+  const [projects, { refetch }] = createResource(get_projects);
 
   const [import_dialog_open, set_import_dialog_open] = createSignal(false);
   const [import_source, set_import_source] = createSignal<
@@ -29,10 +29,28 @@ export function HomePage() {
 
   const navigate = useNavigate();
 
+  const handle_new_project_form_submit = async () => {
+    handle_create_project();
+    set_import_dialog_open(false);
+    set_import_source("blank");
+    set_new_project_name("");
+    set_project_cards_pasted("");
+    set_project_cards_filepath("");
+  };
+
   async function handle_create_project() {
     const new_project_id = await create_project(new_project_name());
     set_active_project_id(new_project_id);
-    navigate("/project", { replace: true });
+    refetch();
+    // navigate("/project", { replace: true });
+  }
+
+  async function handle_delete_project(id: number) {
+    if (id === active_project_id()) {
+      set_active_project_id(undefined);
+    }
+
+    await delete_project(id);
   }
 
   return (
@@ -69,7 +87,7 @@ export function HomePage() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    handle_create_project();
+                    handle_new_project_form_submit();
                   }}
                   class="flex flex-col items-stretch justify-center"
                 >
@@ -79,7 +97,10 @@ export function HomePage() {
                     class="flex flex-col"
                   >
                     <TextField.Label>Name</TextField.Label>
-                    <TextField.Input class="mb-4 bg-gray-7 dark:bg-graydark-7 px-1 rounded" />
+                    <TextField.Input
+                      class="mb-4 bg-gray-7 dark:bg-graydark-7 px-1 rounded"
+                      autocorrect="off"
+                    />
                   </TextField>
                   <ToggleGroup
                     value={import_source()}
@@ -149,10 +170,10 @@ export function HomePage() {
                     </Switch>
                   </div>
                   <Button
-                    onMouseDown={handle_create_project}
+                    onMouseDown={handle_new_project_form_submit}
                     onKeyDown={(e: KeyboardEvent) => {
                       if (e.key === "Enter" || e.key === " ") {
-                        handle_create_project();
+                        handle_new_project_form_submit();
                       }
                     }}
                     class="
@@ -169,26 +190,33 @@ export function HomePage() {
         </div>
         <hr class="text-gray-dim" />
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-          <Show when={!projects.loading} fallback={<div>Loading lists...</div>}>
-            <Show
-              when={projects()?.length}
-              fallback={<div>No lists found. Create one to get started!</div>}
-            >
-              <For each={projects()}>
-                {(project) => (
+          <Suspense>
+            <For each={projects()}>
+              {(project) => (
+                <Button
+                  class="relative p-4 rounded bg-gray-3 dark:bg-graydark-3 cursor-pointer"
+                  onMouseDown={() => {
+                    set_active_project_id(project.id);
+                    navigate("/project");
+                  }}
+                >
+                  <h3 class="text-lg font-medium">{project.name}</h3>
                   <Button
-                    class="p-4 rounded bg-gray-3 dark:bg-graydark-3 cursor-pointer"
-                    onMouseDown={() => {
-                      set_active_project_id(project.id);
-                      navigate("/project");
+                    class="
+                        absolute top-2 right-2 p-2 rounded cursor-pointer
+                        bg-tomato-3 dark:bg-tomatodark-3 hover:bg-tomato-9 hover:dark:bg-tomatodark-9
+                      "
+                    onMouseDown={(e: MouseEvent) => {
+                      e.stopPropagation();
+                      handle_delete_project(project.id).then(refetch);
                     }}
                   >
-                    <h3 class="text-lg font-medium">{project.name}</h3>
+                    ×
                   </Button>
-                )}
-              </For>
-            </Show>
-          </Show>
+                </Button>
+              )}
+            </For>
+          </Suspense>
         </div>
       </div>
     </main>
