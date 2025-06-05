@@ -24,12 +24,14 @@ export function ProjectPage() {
   const [project_settings_dialog_open, set_project_settings_dialog_open] =
     createSignal(false);
   const [new_project_name, set_new_project_name] = createSignal("");
+  const [new_project_description, set_new_project_description] =
+    createSignal("");
 
   const handle_edit_project = async () => {
     await update_project_metadata(
       active_project_id()!,
       new_project_name().trim(),
-      project_metadata()?.description,
+      new_project_description().trim(),
     );
     set_project_settings_dialog_open(false);
     set_new_project_name("");
@@ -248,7 +250,7 @@ export function ProjectPage() {
                   e.preventDefault();
                   handle_edit_project();
                 }}
-                class="flex flex-col items-stretch justify-center"
+                class="flex flex-col items-stretch justify-center gap-4"
               >
                 <TextField
                   value={new_project_name()}
@@ -257,9 +259,20 @@ export function ProjectPage() {
                 >
                   <TextField.Label>Name</TextField.Label>
                   <TextField.Input
-                    class="mb-4 bg-gray-7 dark:bg-graydark-7 px-1 rounded"
+                    class="bg-gray-7 dark:bg-graydark-7 px-1 rounded"
                     autocorrect="off"
                     value={project_metadata()?.name ?? ""}
+                  />
+                </TextField>
+                <TextField
+                  value={new_project_description()}
+                  onChange={set_new_project_description}
+                  class="flex flex-col"
+                >
+                  <TextField.Label>Description</TextField.Label>
+                  <TextField.TextArea
+                    class="bg-gray-7 dark:bg-graydark-7 px-1 rounded resize-none"
+                    value={project_metadata()?.description ?? ""}
                   />
                 </TextField>
                 <Button
