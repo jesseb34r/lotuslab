@@ -7,6 +7,8 @@
     "core:default",
     "dialog:default",
     "fs:allow-app-read-recursive",
-    "fs:allow-app-write-recursive"
+    "fs:allow-app-write-recursive",
+    "sql:default",
+    "sql:allow-execute"
   ]
 }
