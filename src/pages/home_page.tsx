@@ -16,6 +16,21 @@ import { ToggleGroup } from "@kobalte/core/toggle-group";
 import { active_project_id, set_active_project_id } from "../index.tsx";
 import { MoxcelDatabase } from "../lib/db.ts";
 
+const funny_deck_names = [
+  "Tezzeret Control",
+  "Cheeri0s",
+  "Splinter Twin",
+  "Pod",
+  "Affinity",
+  "Storm",
+  "Burn",
+  "Goblins",
+  "Infect",
+  "Jeskai Control",
+  "Dredge",
+  "Death and Taxes",
+];
+
 export function HomePage() {
   const [projects, { refetch }] = createResource(async () => {
     const db = await MoxcelDatabase.db();
@@ -68,7 +83,13 @@ export function HomePage() {
             onOpenChange={set_import_dialog_open}
           >
             <Dialog.Trigger
-              onMouseDown={() => set_import_dialog_open(true)}
+              onMouseDown={() => {
+                const randomIndex = Math.floor(
+                  Math.random() * funny_deck_names.length,
+                );
+                set_new_project_name(funny_deck_names[randomIndex]);
+                set_import_dialog_open(true);
+              }}
               class="
                 px-2 py-1 rounded cursor-pointer
                 bg-grass-3 dark:bg-grassdark-3
