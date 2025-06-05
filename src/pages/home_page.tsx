@@ -14,10 +14,10 @@ import { TextField } from "@kobalte/core/text-field";
 import { ToggleGroup } from "@kobalte/core/toggle-group";
 
 import { active_project_id, set_active_project_id } from "../index.tsx";
-import { create_project, delete_project, get_projects } from "../lib/db.ts";
+import { create_project, delete_project, get_project_list } from "../lib/db.ts";
 
 export function HomePage() {
-  const [projects, { refetch }] = createResource(get_projects);
+  const [projects, { refetch }] = createResource(get_project_list);
 
   const [import_dialog_open, set_import_dialog_open] = createSignal(false);
   const [import_source, set_import_source] = createSignal<
@@ -66,8 +66,8 @@ export function HomePage() {
               onMouseDown={() => set_import_dialog_open(true)}
               class="
                 px-2 py-1 rounded cursor-pointer
-                bg-grass-4 dark:bg-grassdark-4
-                hover:bg-grass-5 dark:hover:bg-grassdark-5
+                bg-grass-3 dark:bg-grassdark-3
+                hover:bg-grass-4 dark:hover:bg-grassdark-4
               "
             >
               New
@@ -79,7 +79,7 @@ export function HomePage() {
                   flex flex-col items-center justify-center gap-4
                   fixed top-20 left-[50%] translate-x-[-50%]
                   px-10 py-8 rounded
-                  bg-gray-3    dark:bg-graydark-3
+                  bg-gray-3 dark:bg-graydark-3
                   text-gray-normal
                 "
               >

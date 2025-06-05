@@ -1,11 +1,41 @@
-import { type Component, createSignal, For, Show } from "solid-js";
+import {
+  type Component,
+  createResource,
+  createSignal,
+  For,
+  Show,
+  Suspense,
+} from "solid-js";
 import { Portal } from "solid-js/web";
 import type { ScryfallCard } from "@scryfall/api-types";
 
 import { active_project_id } from "../index.tsx";
 import type { Card } from "../lib/project.ts";
+import { get_project_by_id, update_project_metadata } from "../lib/db.ts";
+import { Dialog } from "@kobalte/core/dialog";
+import { TextField } from "@kobalte/core/text-field";
+import { Button } from "@kobalte/core/button";
 
 export function ProjectPage() {
+  const [project_metadata, { refetch }] = createResource(() =>
+    get_project_by_id(active_project_id()!),
+  );
+
+  const [project_settings_dialog_open, set_project_settings_dialog_open] =
+    createSignal(false);
+  const [new_project_name, set_new_project_name] = createSignal("");
+
+  const handle_edit_project = async () => {
+    await update_project_metadata(
+      active_project_id()!,
+      new_project_name().trim(),
+      project_metadata()?.description,
+    );
+    set_project_settings_dialog_open(false);
+    set_new_project_name("");
+    refetch();
+  };
+
   const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
   const [preview_show, set_preview_show] = createSignal(false);
   const [preview_offset, set_preview_offset] = createSignal({ x: 0, y: 0 });
@@ -182,15 +212,75 @@ export function ProjectPage() {
   };
 
   return (
-    <main class="flex flex-col p-8">
-      <Show when={active_project_id()}>
-        {(project_id) => (
-          <>
-            {/* <h1 class="text-2xl font-medium">{project().name}</h1> */}
-            {/* <DeckView list={project().lists[0].cards} /> */}
-          </>
-        )}
-      </Show>
+    <main class="relative flex flex-col p-8">
+      <Suspense fallback="resource not loaded">
+        <h1 class="text-2xl font-medium pb-6">{project_metadata()?.name}</h1>
+        <h2 class="font-bold">Description</h2>
+        <p>{project_metadata()?.description}</p>
+        <Dialog
+          open={project_settings_dialog_open()}
+          onOpenChange={set_project_settings_dialog_open}
+        >
+          <Dialog.Trigger
+            onMouseDown={() => set_project_settings_dialog_open(true)}
+            class="
+              absolute top-8 right-8
+              px-2 py-1 rounded cursor-pointer
+              bg-grass-3 dark:bg-grassdark-3
+              hover:bg-grass-4 dark:hover:bg-grassdark-4
+            "
+          >
+            Edit
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Content
+              class="
+                flex flex-col items-center justify-center gap-4
+                fixed top-20 left-[50%] translate-x-[-50%]
+                px-10 py-8 rounded
+                bg-gray-3 dark:bg-graydark-3
+                text-gray-normal
+              "
+            >
+              <Dialog.Title class="text-2xl mb-4">Edit Project</Dialog.Title>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handle_edit_project();
+                }}
+                class="flex flex-col items-stretch justify-center"
+              >
+                <TextField
+                  value={new_project_name()}
+                  onChange={set_new_project_name}
+                  class="flex flex-col"
+                >
+                  <TextField.Label>Name</TextField.Label>
+                  <TextField.Input
+                    class="mb-4 bg-gray-7 dark:bg-graydark-7 px-1 rounded"
+                    autocorrect="off"
+                    value={project_metadata()?.name ?? ""}
+                  />
+                </TextField>
+                <Button
+                  onMouseDown={handle_edit_project}
+                  onKeyDown={(e: KeyboardEvent) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      handle_edit_project();
+                    }
+                  }}
+                  class="
+                    px-2 py-1 rounded self-end cursor-pointer
+                    bg-grass-4 dark:bg-grassdark-4
+                    hover:bg-grass-5 dark:hover:bg-grassdark-5"
+                >
+                  Submit
+                </Button>
+              </form>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog>
+      </Suspense>
       <Show when={preview_show()}>
         <Portal>
           <img
