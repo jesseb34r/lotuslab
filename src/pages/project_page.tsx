@@ -222,6 +222,7 @@ export function ProjectPage() {
         <Dialog
           open={project_settings_dialog_open()}
           onOpenChange={set_project_settings_dialog_open}
+          // TODO: figure out why it submits an empty string when you don't edit the name.
         >
           <Dialog.Trigger
             onMouseDown={() => set_project_settings_dialog_open(true)}
