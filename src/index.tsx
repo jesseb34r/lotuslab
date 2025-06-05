@@ -1,6 +1,7 @@
 /* @refresh reload */
 import { render } from "solid-js/web";
 import { Router, Route } from "@solidjs/router";
+import { createSignal, type ParentComponent } from "solid-js";
 
 import "./index.css";
 
@@ -10,7 +11,6 @@ import { ProjectPage } from "./pages/project_page";
 import { SearchPage } from "./pages/search_page";
 import { SettingsPage } from "./pages/settings_page";
 import { NotFound } from "./pages/404";
-import { createSignal, type ParentComponent } from "solid-js";
 
 const AppLayout: ParentComponent = (props) => (
   <div class="min-h-screen bg-gray-app text-gray-normal select-none cursor-default">
