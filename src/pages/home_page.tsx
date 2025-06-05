@@ -14,10 +14,13 @@ import { TextField } from "@kobalte/core/text-field";
 import { ToggleGroup } from "@kobalte/core/toggle-group";
 
 import { active_project_id, set_active_project_id } from "../index.tsx";
-import { create_project, delete_project, get_project_list } from "../lib/db.ts";
+import { MoxcelDatabase } from "../lib/db.ts";
 
 export function HomePage() {
-  const [projects, { refetch }] = createResource(get_project_list);
+  const [projects, { refetch }] = createResource(async () => {
+    const db = await MoxcelDatabase.db();
+    return db.get_project_list();
+  });
 
   const [import_dialog_open, set_import_dialog_open] = createSignal(false);
   const [import_source, set_import_source] = createSignal<
@@ -25,32 +28,34 @@ export function HomePage() {
   >("blank");
   const [new_project_name, set_new_project_name] = createSignal("");
   const [project_cards_pasted, set_project_cards_pasted] = createSignal("");
-  const [project_cards_filepath, set_project_cards_filepath] = createSignal("");
+  const [_project_cards_filepath, set_project_cards_filepath] =
+    createSignal("");
 
   const navigate = useNavigate();
 
-  const handle_new_project_form_submit = async () => {
-    handle_create_project();
+  async function handle_new_project_form_submit() {
+    const db = await MoxcelDatabase.db();
+    const new_project_id = await db.create_project(new_project_name());
+    set_active_project_id(new_project_id);
+    refetch();
+
+    // Clear all form input signals after submitting.
     set_import_dialog_open(false);
     set_import_source("blank");
     set_new_project_name("");
     set_project_cards_pasted("");
     set_project_cards_filepath("");
-  };
 
-  async function handle_create_project() {
-    const new_project_id = await create_project(new_project_name());
-    set_active_project_id(new_project_id);
-    refetch();
     // navigate("/project", { replace: true });
   }
 
   async function handle_delete_project(id: number) {
+    const db = await MoxcelDatabase.db();
     if (id === active_project_id()) {
       set_active_project_id(undefined);
     }
 
-    await delete_project(id);
+    await db.delete_project(id);
   }
 
   return (
@@ -73,7 +78,6 @@ export function HomePage() {
               New
             </Dialog.Trigger>
             <Dialog.Portal>
-              {/* <Dialog.Overlay class="w-screen h-screen fixed top-[0] left-[0] bg-gray-ghost" /> */}
               <Dialog.Content
                 class="
                   flex flex-col items-center justify-center gap-4

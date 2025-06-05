@@ -11,15 +11,16 @@ import type { ScryfallCard } from "@scryfall/api-types";
 
 import { active_project_id } from "../index.tsx";
 import type { Card } from "../lib/project.ts";
-import { get_project_by_id, update_project_metadata } from "../lib/db.ts";
 import { Dialog } from "@kobalte/core/dialog";
 import { TextField } from "@kobalte/core/text-field";
 import { Button } from "@kobalte/core/button";
+import { MoxcelDatabase } from "../lib/db";
 
 export function ProjectPage() {
-  const [project_metadata, { refetch }] = createResource(() =>
-    get_project_by_id(active_project_id()!),
-  );
+  const [project_metadata, { refetch }] = createResource(async () => {
+    const db = await MoxcelDatabase.db();
+    return db.get_project_by_id(active_project_id()!);
+  });
 
   const [project_settings_dialog_open, set_project_settings_dialog_open] =
     createSignal(false);
@@ -28,7 +29,8 @@ export function ProjectPage() {
     createSignal("");
 
   const handle_edit_project = async () => {
-    await update_project_metadata(
+    const db = await MoxcelDatabase.db();
+    await db.update_project_metadata(
       active_project_id()!,
       new_project_name().trim(),
       new_project_description().trim(),
