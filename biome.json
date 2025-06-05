@@ -10,7 +10,8 @@
         "noInvalidPositionAtImportRule": "off"
       },
       "style": {
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "off",
+        "noUselessElse": "off"
       }
     }
   }
