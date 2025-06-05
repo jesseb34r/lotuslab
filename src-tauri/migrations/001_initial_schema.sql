@@ -4,9 +4,9 @@
 create table if not exists cards (
     -- Scryfall core card fields
     id                  text primary key,
-    layout              text, -- type layout with options?
+    layout              text not null, -- type layout with options?
     oracle_id           text,
-    scryfall_uri        text,
+    scryfall_uri        text not null,
 
     -- Scryfall gameplay fields
     -- all_parts // needs typing
