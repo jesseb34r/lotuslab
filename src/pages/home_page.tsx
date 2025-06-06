@@ -10,6 +10,7 @@ import { useNavigate } from "@solidjs/router";
 
 import { Button } from "@kobalte/core/button";
 import { Dialog } from "@kobalte/core/dialog";
+import { Select } from "@kobalte/core/select";
 import { TextField } from "@kobalte/core/text-field";
 import { ToggleGroup } from "@kobalte/core/toggle-group";
 
@@ -41,6 +42,9 @@ export function HomePage() {
   const [import_source, set_import_source] = createSignal<
     "blank" | "paste" | "file"
   >("blank");
+  const [new_project_format, set_new_project_format] = createSignal<
+    "list" | "modern" | "commander" | "cube"
+  >("list");
   const [new_project_name, set_new_project_name] = createSignal("");
   const [project_cards_pasted, set_project_cards_pasted] = createSignal("");
   const [_project_cards_filepath, set_project_cards_filepath] =
@@ -51,12 +55,33 @@ export function HomePage() {
   async function handle_new_project_form_submit() {
     const db = await MoxcelDatabase.db();
     const new_project_id = await db.create_project(new_project_name());
+
+    // Add initial lists depending on the selected project format
+    const format = new_project_format();
+    switch (format) {
+      case "list":
+        await db.create_list(new_project_id, "list");
+        break;
+      case "modern":
+        await db.create_list(new_project_id, "main deck");
+        await db.create_list(new_project_id, "sideboard");
+        break;
+      case "commander":
+        await db.create_list(new_project_id, "commander");
+        await db.create_list(new_project_id, "main deck");
+        break;
+      case "cube":
+        await db.create_list(new_project_id, "main");
+        break;
+    }
+
     set_active_project_id(new_project_id);
     refetch();
 
     // Clear all form input signals after submitting.
     set_import_dialog_open(false);
     set_import_source("blank");
+    set_new_project_format("list");
     set_new_project_name("");
     set_project_cards_pasted("");
     set_project_cards_filepath("");
@@ -127,6 +152,33 @@ export function HomePage() {
                       autocorrect="off"
                     />
                   </TextField>
+                  <Select
+                    value={new_project_format()}
+                    onChange={set_new_project_format}
+                    options={["list", "modern", "commander", "cube"]}
+                    itemComponent={(props) => (
+                      <Select.Item
+                        item={props.item}
+                        class="px-4 py-2 cursor-pointer data-highlighted:bg-gray-5 dark:data-highlighted:bg-graydark-5"
+                      >
+                        <Select.ItemLabel>
+                          {props.item.rawValue}
+                        </Select.ItemLabel>
+                        <Select.ItemIndicator>⋅</Select.ItemIndicator>
+                      </Select.Item>
+                    )}
+                  >
+                    <Select.Trigger class="bg-gray-7 dark:bg-graydark-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
+                      <Select.Value<string>>
+                        {(state) => state.selectedOption()}
+                      </Select.Value>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content>
+                        <Select.Listbox />
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select>
                   <ToggleGroup
                     value={import_source()}
                     onChange={set_import_source}
