@@ -17,31 +17,26 @@ import { Button } from "@kobalte/core/button";
 import { MoxcelDatabase } from "../lib/db";
 
 export function ProjectPage() {
-  const [project_metadata, { refetch }] = createResource(async () => {
-    const db = await MoxcelDatabase.db();
-    return db.get_project_by_id(active_project_id()!);
-  });
+  const [project_metadata, { refetch: refetch_project_metadata }] =
+    createResource(async () => {
+      const db = await MoxcelDatabase.db();
+      return db.get_project_by_id(active_project_id()!);
+    });
 
-  const [project_settings_dialog_open, set_project_settings_dialog_open] =
-    createSignal(false);
-  const [new_project_name, set_new_project_name] = createSignal("");
-  const [new_project_description, set_new_project_description] =
-    createSignal("");
+  const [lists, { refetch: refetch_lists }] = createResource(
+    () => project_metadata()?.id,
+    async (id) => {
+      if (!id) {
+        return [];
+      } else {
+        const db = await MoxcelDatabase.db();
+        return db.get_lists_by_project(id);
+      }
+    },
+  );
 
-  const handle_edit_project = async () => {
-    const db = await MoxcelDatabase.db();
-    await db.update_project_metadata(
-      active_project_id()!,
-      new_project_name().trim(),
-      new_project_description().trim(),
-    );
-    set_project_settings_dialog_open(false);
-    set_new_project_name("");
-    refetch();
-  };
-
-  const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
   const [preview_show, set_preview_show] = createSignal(false);
+  const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
   const [preview_offset, set_preview_offset] = createSignal({ x: 0, y: 0 });
   const [preview_img_uri, set_preview_img_uri] = createSignal("");
 
@@ -215,103 +210,140 @@ export function ProjectPage() {
     );
   };
 
+  const EditProjectDialog = () => {
+    const [project_settings_dialog_open, set_project_settings_dialog_open] =
+      createSignal(false);
+    const [new_project_name, set_new_project_name] = createSignal("");
+    const [new_project_description, set_new_project_description] =
+      createSignal("");
+
+    const handle_edit_project = async () => {
+      const db = await MoxcelDatabase.db();
+      await db.update_project_metadata(
+        active_project_id()!,
+        new_project_name().trim(),
+        new_project_description().trim(),
+      );
+      set_project_settings_dialog_open(false);
+      set_new_project_name("");
+      refetch_project_metadata();
+    };
+
+    return (
+      <Dialog
+        open={project_settings_dialog_open()}
+        onOpenChange={set_project_settings_dialog_open}
+        // TODO: figure out why it submits an empty string when you don't edit the name.
+      >
+        <Dialog.Trigger
+          onMouseDown={() => set_project_settings_dialog_open(true)}
+          class="
+            absolute top-8 right-8
+            px-2 py-1 rounded cursor-pointer
+            bg-grass-3 dark:bg-grassdark-3
+            hover:bg-grass-4 dark:hover:bg-grassdark-4
+          "
+        >
+          Edit
+        </Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Content
+            class="
+              flex flex-col items-center justify-center gap-4
+              fixed top-20 left-[50%] translate-x-[-50%]
+              px-10 py-8 rounded
+              bg-gray-3 dark:bg-graydark-3
+              text-gray-normal
+            "
+          >
+            <Dialog.Title class="text-2xl mb-4">Edit Project</Dialog.Title>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handle_edit_project();
+              }}
+              class="flex flex-col items-stretch justify-center gap-4"
+            >
+              <TextField
+                value={new_project_name()}
+                onChange={set_new_project_name}
+                class="flex flex-col"
+              >
+                <TextField.Label>Name</TextField.Label>
+                <TextField.Input
+                  class="bg-gray-7 dark:bg-graydark-7 px-1 rounded"
+                  autocorrect="off"
+                  value={project_metadata()?.name ?? ""}
+                />
+              </TextField>
+              <TextField
+                value={new_project_description()}
+                onChange={set_new_project_description}
+                class="flex flex-col"
+              >
+                <TextField.Label>Description</TextField.Label>
+                <TextField.TextArea
+                  class="bg-gray-7 dark:bg-graydark-7 px-1 rounded resize-none"
+                  value={project_metadata()?.description ?? ""}
+                />
+              </TextField>
+              <Button
+                onMouseDown={handle_edit_project}
+                onKeyDown={(e: KeyboardEvent) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    handle_edit_project();
+                  }
+                }}
+                class="
+                  px-2 py-1 rounded self-end cursor-pointer
+                  bg-grass-4 dark:bg-grassdark-4
+                  hover:bg-grass-5 dark:hover:bg-grassdark-5"
+              >
+                Submit
+              </Button>
+            </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+    );
+  };
+
+  const CardPreview = () => (
+    <Show when={preview_show()}>
+      <Portal>
+        <img
+          ref={set_preview_ref}
+          class="fixed aspect-[5/7] h-80 rounded-xl"
+          style={{
+            left: `${preview_offset()!.x}px`,
+            top: `${preview_offset()!.y}px`,
+            "pointer-events": "none",
+          }}
+          src={preview_img_uri()}
+          alt="card preview"
+        />
+      </Portal>
+    </Show>
+  );
+
   return (
     <main class="relative flex flex-col p-8">
       <Suspense fallback="resource not loaded">
         <h1 class="text-2xl font-medium pb-6">{project_metadata()?.name}</h1>
         <h2 class="font-bold">Description</h2>
         <p>{project_metadata()?.description}</p>
-        <Dialog
-          open={project_settings_dialog_open()}
-          onOpenChange={set_project_settings_dialog_open}
-          // TODO: figure out why it submits an empty string when you don't edit the name.
-        >
-          <Dialog.Trigger
-            onMouseDown={() => set_project_settings_dialog_open(true)}
-            class="
-              absolute top-8 right-8
-              px-2 py-1 rounded cursor-pointer
-              bg-grass-3 dark:bg-grassdark-3
-              hover:bg-grass-4 dark:hover:bg-grassdark-4
-            "
-          >
-            Edit
-          </Dialog.Trigger>
-          <Dialog.Portal>
-            <Dialog.Content
-              class="
-                flex flex-col items-center justify-center gap-4
-                fixed top-20 left-[50%] translate-x-[-50%]
-                px-10 py-8 rounded
-                bg-gray-3 dark:bg-graydark-3
-                text-gray-normal
-              "
-            >
-              <Dialog.Title class="text-2xl mb-4">Edit Project</Dialog.Title>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handle_edit_project();
-                }}
-                class="flex flex-col items-stretch justify-center gap-4"
-              >
-                <TextField
-                  value={new_project_name()}
-                  onChange={set_new_project_name}
-                  class="flex flex-col"
-                >
-                  <TextField.Label>Name</TextField.Label>
-                  <TextField.Input
-                    class="bg-gray-7 dark:bg-graydark-7 px-1 rounded"
-                    autocorrect="off"
-                    value={project_metadata()?.name ?? ""}
-                  />
-                </TextField>
-                <TextField
-                  value={new_project_description()}
-                  onChange={set_new_project_description}
-                  class="flex flex-col"
-                >
-                  <TextField.Label>Description</TextField.Label>
-                  <TextField.TextArea
-                    class="bg-gray-7 dark:bg-graydark-7 px-1 rounded resize-none"
-                    value={project_metadata()?.description ?? ""}
-                  />
-                </TextField>
-                <Button
-                  onMouseDown={handle_edit_project}
-                  onKeyDown={(e: KeyboardEvent) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      handle_edit_project();
-                    }
-                  }}
-                  class="
-                    px-2 py-1 rounded self-end cursor-pointer
-                    bg-grass-4 dark:bg-grassdark-4
-                    hover:bg-grass-5 dark:hover:bg-grassdark-5"
-                >
-                  Submit
-                </Button>
-              </form>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog>
+        <hr class="text-gray-dim my-4" />
+        <Show when={!lists.loading} fallback={<div>Loading lists...</div>}>
+          <h2 class="font-bold">Lists</h2>
+          <ul class="list-disc list-inside space-y-1">
+            <For each={lists()}>
+              {(list_metadata) => <li>{list_metadata.name}</li>}
+            </For>
+          </ul>
+        </Show>
+        <EditProjectDialog />
       </Suspense>
-      <Show when={preview_show()}>
-        <Portal>
-          <img
-            ref={set_preview_ref}
-            class="fixed aspect-[5/7] h-80 rounded-xl"
-            style={{
-              left: `${preview_offset()!.x}px`,
-              top: `${preview_offset()!.y}px`,
-              "pointer-events": "none",
-            }}
-            src={preview_img_uri()}
-            alt="card preview"
-          />
-        </Portal>
-      </Show>
+      <CardPreview />
     </main>
   );
 }
