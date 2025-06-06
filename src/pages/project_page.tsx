@@ -224,8 +224,10 @@ export function ProjectPage() {
         new_project_name().trim(),
         new_project_description().trim(),
       );
+
       set_project_settings_dialog_open(false);
       set_new_project_name("");
+
       refetch_project_metadata();
     };
 
