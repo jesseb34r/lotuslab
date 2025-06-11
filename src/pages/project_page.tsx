@@ -8,12 +8,12 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import type { ScryfallCard } from "@scryfall/api-types";
-
-import { active_project_id } from "../index.tsx";
-import type { Card } from "../lib/project.ts";
 import { Dialog } from "@kobalte/core/dialog";
 import { TextField } from "@kobalte/core/text-field";
 import { Button } from "@kobalte/core/button";
+
+import { active_project_id } from "../index.tsx";
+import type { Card } from "../lib/project.ts";
 import { MoxcelDatabase } from "../lib/db";
 
 export function ProjectPage() {
