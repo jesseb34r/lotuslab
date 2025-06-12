@@ -70,6 +70,7 @@ const Input = <T extends ValidComponent = "input">(
         "flex h-10 w-full rounded-md border border-neutral-7 bg-transparent px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-11 disabled:cursor-not-allowed disabled:opacity-50 data-[invalid]:border-danger-7 data-[invalid]:text-danger-9",
         local.class,
       )}
+      autorcorrect="off"
       {...others}
     />
   );
@@ -90,6 +91,7 @@ const TextArea = <T extends ValidComponent = "textarea">(
         "flex min-h-[80px] w-full rounded-md border border-neutral-7 bg-neutral-3 px-3 py-2 text-sm placeholder:text-neutral-11 disabled:cursor-not-allowed disabled:opacity-50",
         local.class,
       )}
+      autocorrect="off"
       {...others}
     />
   );

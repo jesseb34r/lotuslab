@@ -9,13 +9,13 @@ import {
 import { useNavigate } from "@solidjs/router";
 
 import { Select } from "@kobalte/core/select";
-import { TextField } from "@kobalte/core/text-field";
 import { ToggleGroup } from "@kobalte/core/toggle-group";
 
 import { active_project_id, set_active_project_id } from "../index.tsx";
 import { MoxcelDatabase } from "../lib/db.ts";
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
+import { TextField } from "../components/ui/text-field";
 
 const funny_deck_names = [
   "Tezzeret Control",
@@ -126,13 +126,9 @@ export function HomePage() {
               <TextField
                 value={new_project_name()}
                 onChange={set_new_project_name}
-                class="flex flex-col"
               >
                 <TextField.Label>Name</TextField.Label>
-                <TextField.Input
-                  class="mb-4 bg-neutral-7 px-1 rounded"
-                  autocorrect="off"
-                />
+                <TextField.Input />
               </TextField>
               <Select
                 value={new_project_format()}
@@ -189,10 +185,9 @@ export function HomePage() {
                     <TextField
                       value={project_cards_pasted()}
                       onChange={set_project_cards_pasted}
-                      class="flex flex-col"
                     >
                       <TextField.Label>Paste List</TextField.Label>
-                      <TextField.TextArea class="bg-neutral-7 px-1 rounded resize-none" />
+                      <TextField.TextArea />
                     </TextField>
                   </Match>
                   <Match when={import_source() === "file"}>
