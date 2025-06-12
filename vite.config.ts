@@ -1,14 +1,9 @@
-import path from "node:path";
+import { defineConfig } from "vite";
 
 import solid from "vite-plugin-solid";
-import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  plugins: [solid(), tailwindcss()],
-  resolve: {
-    alias: {
-      "~": path.resolve(__dirname, "./src"),
-    },
-  },
+  plugins: [solid(), tsconfigPaths(), tailwindcss()],
 });

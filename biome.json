@@ -11,8 +11,7 @@
       },
       "style": {
         "noNonNullAssertion": "off",
-        "noUselessElse": "off",
-        "useNodejsImportProtocol": "off"
+        "noUselessElse": "off"
       }
     }
   }

@@ -13,7 +13,7 @@ import { SettingsPage } from "./pages/settings_page";
 import { NotFound } from "./pages/404";
 
 const AppLayout: ParentComponent = (props) => (
-  <div class="min-h-screen bg-gray-app text-gray-normal select-none cursor-default">
+  <div class="min-h-screen bg-gray-1 dark:bg-graydark-1 text-gray-12 dark:text-graydark-12 select-none cursor-default">
     <AppHeader />
     {props.children}
   </div>
