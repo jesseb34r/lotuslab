@@ -59,27 +59,19 @@ export function ProjectPage() {
   const TableView: Component<{ list: Card[] }> = (props) => (
     <div class="w-full max-w-5xl">
       <div class="border overflow-hidden">
-        <div class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b bg-gray-1 dark:bg-graydark-1">
+        <div class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b bg-neutral-1">
           {/* Header */}
-          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
-            #
-          </div>
-          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
-            Name
-          </div>
-          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
-            Mana Cost
-          </div>
-          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
-            Tags
-          </div>
+          <div class="font-medium text-neutral-12 p-3">#</div>
+          <div class="font-medium text-neutral-12 p-3">Name</div>
+          <div class="font-medium text-neutral-12 p-3">Mana Cost</div>
+          <div class="font-medium text-neutral-12 p-3">Tags</div>
         </div>
 
         {/* Card list */}
         <For each={props.list}>
           {(card) => (
             <div
-              class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b last:border-b-0 hover:bg-gray-2 dark:hover:bg-graydark-2 transition-colors"
+              class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b last:border-b-0 hover:bg-neutral-2 transition-colors"
               onMouseMove={(e) =>
                 handle_set_preview(e, card.card as ScryfallCard.AnySingleFaced)
               }
@@ -103,7 +95,7 @@ export function ProjectPage() {
               </div>
 
               {/* Tags column (stub for future) */}
-              <div class="p-3 flex items-center text-gray-9 dark:text-graydark-9 italic">
+              <div class="p-3 flex items-center text-neutral-9 italic">
                 {/* Empty for now - will hold tags in the future */}
               </div>
             </div>
@@ -112,7 +104,7 @@ export function ProjectPage() {
       </div>
 
       {/* Total count */}
-      <div class="mt-4 text-sm text-gray-11 dark:text-graydark-11">
+      <div class="mt-4 text-sm text-neutral-11">
         Total Cards: {props.list.reduce((sum, card) => sum + card.quantity, 0)}
       </div>
     </div>
@@ -170,7 +162,7 @@ export function ProjectPage() {
         <For each={sorted_type_keys}>
           {(type_key) => (
             <div class="mb-6">
-              <h3 class="text-lg font-medium mb-3 text-gray-12 dark:text-graydark-12">
+              <h3 class="text-lg font-medium mb-3 text-neutral-12">
                 {type_key} (
                 {type_groups[type_key].reduce(
                   (sum, card) => sum + card.quantity,
@@ -182,7 +174,7 @@ export function ProjectPage() {
                 <For each={type_groups[type_key]}>
                   {(card) => (
                     <div
-                      class="flex items-center gap-3 p-2 hover:bg-gray-2 dark:hover:bg-graydark-2 rounded transition-colors"
+                      class="flex items-center gap-3 p-2 hover:bg-neutral-2 rounded transition-colors"
                       onMouseMove={(e) =>
                         handle_set_preview(
                           e,
@@ -239,25 +231,12 @@ export function ProjectPage() {
       >
         <Dialog.Trigger
           onMouseDown={() => set_project_settings_dialog_open(true)}
-          class="
-            absolute top-8 right-8
-            px-2 py-1 rounded cursor-pointer
-            bg-grass-3 dark:bg-grassdark-3
-            hover:bg-grass-4 dark:hover:bg-grassdark-4
-          "
+          class="absolute top-8 right-8 px-2 py-1 rounded cursor-pointer bg-success-3 hover:bg-success-4"
         >
           Edit
         </Dialog.Trigger>
         <Dialog.Portal>
-          <Dialog.Content
-            class="
-              flex flex-col items-center justify-center gap-4
-              fixed top-20 left-[50%] translate-x-[-50%]
-              px-10 py-8 rounded
-              bg-gray-3 dark:bg-graydark-3
-              text-gray-normal
-            "
-          >
+          <Dialog.Content class="flex flex-col items-center justify-center gap-4 fixed top-20 left-[50%] translate-x-[-50%] px-10 py-8 rounded bg-neutral-3 text-neutral-12">
             <Dialog.Title class="text-2xl mb-4">Edit Project</Dialog.Title>
             <form
               onSubmit={(e) => {
@@ -273,7 +252,7 @@ export function ProjectPage() {
               >
                 <TextField.Label>Name</TextField.Label>
                 <TextField.Input
-                  class="bg-gray-7 dark:bg-graydark-7 px-1 rounded"
+                  class="bg-neutral-7 px-1 rounded"
                   autocorrect="off"
                   value={project_metadata()?.name ?? ""}
                 />
@@ -285,7 +264,7 @@ export function ProjectPage() {
               >
                 <TextField.Label>Description</TextField.Label>
                 <TextField.TextArea
-                  class="bg-gray-7 dark:bg-graydark-7 px-1 rounded resize-none"
+                  class="bg-neutral-7 px-1 rounded resize-none"
                   value={project_metadata()?.description ?? ""}
                 />
               </TextField>
@@ -296,10 +275,7 @@ export function ProjectPage() {
                     handle_edit_project();
                   }
                 }}
-                class="
-                  px-2 py-1 rounded self-end cursor-pointer
-                  bg-grass-4 dark:bg-grassdark-4
-                  hover:bg-grass-5 dark:hover:bg-grassdark-5"
+                class="px-2 py-1 rounded self-end cursor-pointer bg-success-4 hover:bg-success-5"
               >
                 Submit
               </Button>
@@ -334,7 +310,7 @@ export function ProjectPage() {
         <h1 class="text-2xl font-medium pb-6">{project_metadata()?.name}</h1>
         <h2 class="font-bold">Description</h2>
         <p>{project_metadata()?.description}</p>
-        <hr class="text-gray-dim my-4" />
+        <hr class="text-neutral-11 my-4" />
         <Show when={!lists.loading} fallback={<div>Loading lists...</div>}>
           <h2 class="font-bold">Lists</h2>
           <ul class="list-disc list-inside space-y-1">

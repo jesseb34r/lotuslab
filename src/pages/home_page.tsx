@@ -117,8 +117,7 @@ export function HomePage() {
               }}
               class="
                 px-2 py-1 rounded cursor-pointer
-                bg-grass-3 dark:bg-grassdark-3
-                hover:bg-grass-4 dark:hover:bg-grassdark-4
+                bg-success-3 hover:bg-success-4
               "
             >
               New
@@ -129,8 +128,7 @@ export function HomePage() {
                   flex flex-col items-center justify-center gap-4
                   fixed top-20 left-[50%] translate-x-[-50%]
                   px-10 py-8 rounded
-                  bg-gray-3 dark:bg-graydark-3
-                  text-gray-normal
+                  bg-neutral-3
                 "
               >
                 <Dialog.Title class="text-2xl mb-4">New Project</Dialog.Title>
@@ -148,7 +146,7 @@ export function HomePage() {
                   >
                     <TextField.Label>Name</TextField.Label>
                     <TextField.Input
-                      class="mb-4 bg-gray-7 dark:bg-graydark-7 px-1 rounded"
+                      class="mb-4 bg-neutral-7 px-1 rounded"
                       autocorrect="off"
                     />
                   </TextField>
@@ -159,7 +157,7 @@ export function HomePage() {
                     itemComponent={(props) => (
                       <Select.Item
                         item={props.item}
-                        class="px-4 py-2 cursor-pointer data-highlighted:bg-gray-5 dark:data-highlighted:bg-graydark-5"
+                        class="px-4 py-2 cursor-pointer data-highlighted:bg-neutral-5"
                       >
                         <Select.ItemLabel>
                           {props.item.rawValue}
@@ -168,7 +166,7 @@ export function HomePage() {
                       </Select.Item>
                     )}
                   >
-                    <Select.Trigger class="bg-gray-7 dark:bg-graydark-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
+                    <Select.Trigger class="bg-neutral-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
                       <Select.Value<string>>
                         {(state) => state.selectedOption()}
                       </Select.Value>
@@ -186,31 +184,19 @@ export function HomePage() {
                   >
                     <ToggleGroup.Item
                       value="blank"
-                      class="
-                        px-2 py-1 rounded cursor-pointer
-                        bg-gray-4 dark:bg-graydark-4
-                        hover:bg-gray-5 dark:hover:bg-graydark-5
-                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                      class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5"
                     >
                       Blank
                     </ToggleGroup.Item>
                     <ToggleGroup.Item
                       value="paste"
-                      class="
-                        px-2 py-1 rounded cursor-pointer
-                        bg-gray-4 dark:bg-graydark-4
-                        hover:bg-gray-5 dark:hover:bg-graydark-5
-                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                      class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5 "
                     >
                       Paste
                     </ToggleGroup.Item>
                     <ToggleGroup.Item
                       value="file"
-                      class="
-                        px-2 py-1 rounded cursor-pointer
-                        bg-gray-4 dark:bg-graydark-4
-                        hover:bg-gray-5 dark:hover:bg-graydark-5
-                        data-pressed:bg-gray-5 dark:data-pressed:bg-graydark-5"
+                      class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5"
                     >
                       Import File
                     </ToggleGroup.Item>
@@ -224,7 +210,7 @@ export function HomePage() {
                           class="flex flex-col"
                         >
                           <TextField.Label>Paste List</TextField.Label>
-                          <TextField.TextArea class="bg-gray-7 dark:bg-graydark-7 px-1 rounded resize-none" />
+                          <TextField.TextArea class="bg-neutral-7 px-1 rounded resize-none" />
                         </TextField>
                       </Match>
                       <Match when={import_source() === "file"}>
@@ -240,7 +226,7 @@ export function HomePage() {
                               const file = e.target.files?.[0];
                               if (file) set_project_cards_filepath(file.name);
                             }}
-                            class="bg-gray-7 dark:bg-graydark-7 px-1 py-1 rounded"
+                            class="bg-neutral-7 px-1 py-1 rounded"
                           />
                         </div>
                       </Match>
@@ -253,10 +239,7 @@ export function HomePage() {
                         handle_new_project_form_submit();
                       }
                     }}
-                    class="
-                      px-2 py-1 rounded self-end cursor-pointer
-                      bg-grass-4 dark:bg-grassdark-4
-                      hover:bg-grass-5 dark:hover:bg-grassdark-5"
+                    class="px-2 py-1 rounded self-end cursor-pointer bg-success-4 hover:bg-success-5"
                   >
                     Create
                   </Button>
@@ -271,7 +254,7 @@ export function HomePage() {
             <For each={projects()}>
               {(project) => (
                 <Button
-                  class="relative p-4 rounded bg-gray-3 dark:bg-graydark-3 cursor-pointer"
+                  class="relative p-4 rounded bg-neutral-3 cursor-pointer"
                   onMouseDown={() => {
                     set_active_project_id(project.id);
                     navigate("/project");
@@ -279,10 +262,7 @@ export function HomePage() {
                 >
                   <h3 class="text-lg font-medium">{project.name}</h3>
                   <Button
-                    class="
-                        absolute top-2 right-2 p-2 rounded cursor-pointer
-                        bg-tomato-3 dark:bg-tomatodark-3 hover:bg-tomato-9 hover:dark:bg-tomatodark-9
-                      "
+                    class="absolute top-2 right-2 p-2 rounded cursor-pointer bg-danger-3 hover:bg-danger-9"
                     onMouseDown={(e: MouseEvent) => {
                       e.stopPropagation();
                       handle_delete_project(project.id).then(refetch);

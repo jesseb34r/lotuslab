@@ -3,7 +3,7 @@ import { render } from "solid-js/web";
 import { Router, Route } from "@solidjs/router";
 import { createSignal, type ParentComponent } from "solid-js";
 
-import "./index.css";
+import "./styles/index.css";
 
 import { AppHeader } from "./components/app_header";
 import { HomePage } from "./pages/home_page";
@@ -13,7 +13,7 @@ import { SettingsPage } from "./pages/settings_page";
 import { NotFound } from "./pages/404";
 
 const AppLayout: ParentComponent = (props) => (
-  <div class="min-h-screen bg-gray-1 dark:bg-graydark-1 text-gray-12 dark:text-graydark-12 select-none cursor-default">
+  <div class="min-h-screen bg-neutral-1 text-neutral-12 select-none cursor-default">
     <AppHeader />
     {props.children}
   </div>
