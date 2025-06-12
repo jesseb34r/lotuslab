@@ -3,12 +3,44 @@ import { splitProps } from "solid-js";
 
 import * as DialogPrimitive from "@kobalte/core/dialog";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
+import { Button as ButtonPrimitive } from "@kobalte/core/button";
 
 import { cn } from "../../lib/utils";
 
 const Root = DialogPrimitive.Root;
-const Trigger = DialogPrimitive.Trigger;
-const CloseButton = DialogPrimitive.CloseButton;
+
+type DialogCloseButtonXProps<T extends ValidComponent = "button"> =
+  DialogPrimitive.DialogCloseButtonProps<T> & { class?: string | undefined };
+
+const CloseButtonX = <T extends ValidComponent = "button">(
+  props: PolymorphicProps<T, DialogCloseButtonXProps<T>>,
+) => {
+  const [, rest] = splitProps(props as DialogCloseButtonXProps, ["class"]);
+  return (
+    <ButtonPrimitive
+      class={cn(
+        "absolute right-margin top-margin rounded-sm text-neutral-11 hover:text-neutral-12 disabled:pointer-events-none",
+        props.class,
+      )}
+      {...rest}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="size-4"
+      >
+        <path d="M18 6l-12 12" />
+        <path d="M6 6l12 12" />
+      </svg>
+      <span class="sr-only">Close</span>
+    </ButtonPrimitive>
+  );
+};
 
 const Portal: Component<DialogPrimitive.DialogPortalProps> = (props) => {
   const [, rest] = splitProps(props, ["children"]);
@@ -45,38 +77,17 @@ type DialogContentProps<T extends ValidComponent = "div"> =
 const Content = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, DialogContentProps<T>>,
 ) => {
-  const [, rest] = splitProps(props as DialogContentProps, [
-    "class",
-    "children",
-  ]);
+  const [, rest] = splitProps(props as DialogContentProps, ["class"]);
   return (
     <Portal>
       <Overlay />
       <DialogPrimitive.Content
         class={cn(
-          "fixed left-1/2 top-1/2 z-50 grid max-h-screen w-full max-w-lg -translate-x-1/2 -translate-y-3/4 gap-4 overflow-y-auto border-2 border-neutral-7 bg-neutral-3 text-neutral-12 p-gutter shadow-lg sm:rounded-lg",
+          "fixed left-1/2 top-1/2 z-50 grid max-h-screen w-full max-w-2xl -translate-x-1/2 -translate-y-3/4 gap-4 overflow-y-auto border-2 border-neutral-7 bg-neutral-3 text-neutral-12 p-gutter shadow-lg sm:rounded-lg",
           props.class,
         )}
         {...rest}
-      >
-        {props.children}
-        <DialogPrimitive.CloseButton class="absolute right-margin top-margin rounded-sm text-neutral-11 hover:neutral-12 disabled:pointer-events-none">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-4"
-          >
-            <path d="M18 6l-12 12" />
-            <path d="M6 6l12 12" />
-          </svg>
-          <span class="sr-only">Close</span>
-        </DialogPrimitive.CloseButton>
-      </DialogPrimitive.Content>
+      />
     </Portal>
   );
 };
@@ -139,8 +150,7 @@ const Description = <T extends ValidComponent = "p">(
 };
 
 export const Dialog = Object.assign(Root, {
-  Trigger,
-  CloseButton,
+  CloseButtonX,
   Content,
   Header,
   Footer,

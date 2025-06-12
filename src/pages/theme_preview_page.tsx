@@ -1,8 +1,11 @@
+import { createSignal } from "solid-js";
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
 import { TextField } from "../components/ui/text-field";
 
 export function ThemePreviewPage() {
+  const [dialog_open, set_dialog_open] = createSignal(false);
+
   return (
     <main class="p-margin flex flex-col gap-margin w-min mx-auto items-center">
       <h1 class="font-bold text-2xl">Button</h1>
@@ -54,9 +57,10 @@ export function ThemePreviewPage() {
       </div>
       <h1 class="font-bold text-2xl">Dialog</h1>
       <div class="bg-neutral-2 rounded flex flex-col items-center justify-center w-lg h-md">
-        <Dialog>
-          <Dialog.Trigger as={Button}>Trigger</Dialog.Trigger>
+        <Dialog open={dialog_open()} onOpenChange={set_dialog_open}>
+          <Button onMouseDown={() => set_dialog_open(true)}>Trigger</Button>
           <Dialog.Content>
+            <Dialog.CloseButtonX onMouseDown={() => set_dialog_open(false)} />
             <Dialog.Header>
               <Dialog.Title>Title</Dialog.Title>
               <Dialog.Description>
@@ -86,12 +90,18 @@ export function ThemePreviewPage() {
               </TextField>
             </div>
             <Dialog.Footer>
-              <Dialog.CloseButton as={Button} variant="danger">
+              <Button
+                variant="danger"
+                onMouseDown={() => set_dialog_open(false)}
+              >
                 Cancel
-              </Dialog.CloseButton>
-              <Dialog.CloseButton as={Button} variant="success" type="submit">
+              </Button>
+              <Button
+                variant="success"
+                onMouseDown={() => set_dialog_open(false)}
+              >
                 Submit
-              </Dialog.CloseButton>
+              </Button>
             </Dialog.Footer>
           </Dialog.Content>
         </Dialog>
