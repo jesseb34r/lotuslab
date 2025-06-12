@@ -7,6 +7,8 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import { cn } from "../../lib/utils";
 
 const Root = DialogPrimitive.Root;
+const Trigger = DialogPrimitive.Trigger;
+const CloseButton = DialogPrimitive.CloseButton;
 
 const Portal: Component<DialogPrimitive.DialogPortalProps> = (props) => {
   const [, rest] = splitProps(props, ["children"]);
@@ -95,13 +97,7 @@ const Header: Component<ComponentProps<"div">> = (props) => {
 const Footer: Component<ComponentProps<"div">> = (props) => {
   const [, rest] = splitProps(props, ["class"]);
   return (
-    <div
-      class={cn(
-        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
-        props.class,
-      )}
-      {...rest}
-    />
+    <div class={cn("flex flex-row justify-between", props.class)} {...rest} />
   );
 };
 
@@ -143,6 +139,8 @@ const Description = <T extends ValidComponent = "p">(
 };
 
 export const Dialog = Object.assign(Root, {
+  Trigger,
+  CloseButton,
   Content,
   Header,
   Footer,
