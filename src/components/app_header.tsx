@@ -9,27 +9,25 @@ export const AppHeader: Component = () => {
     <nav>
       <ul class="grid grid-cols-3 w-full items-center p-2">
         <li class="justify-self-start">
-          <Button.Root
-            onMouseDown={() => navigate("/", { replace: true })}
-            class="
-              inline-flex content-center items-center rounded
-              p-2 gap-1
-              text-gray-11 dark:text-graydark-11
-              outline-none transition duration-75 cursor-pointer
-            "
-          >
-            <HomeIcon class="size-6 text-gray-11 hover:text-gray-12 dark:text-graydark-11 dark:hover:text-graydark-12 stroke-2" />
-          </Button.Root>
+          <div class="inline-flex gap-2">
+            <Button.Root
+              onMouseDown={() => navigate("/", { replace: true })}
+              class="inline-flex content-center items-center rounded p-2 gap-1 text-neutral-11 hover:text-neutral-12 outline-none transition duration-75 cursor-pointer"
+            >
+              <HomeIcon class="size-6 stroke-2" />
+            </Button.Root>
+            <Button.Root
+              onMouseDown={() => navigate("/theme_preview")}
+              class="inline-flex content-center items-center rounded p-2 gap-1 text-neutral-11 hover:text-neutral-12 outline-none transition duration-75 cursor-pointer"
+            >
+              Theme Preview
+            </Button.Root>
+          </div>
         </li>
         <li class="justify-self-center">
           <Button.Root
             onMouseDown={() => navigate("/search", { replace: true })}
-            class="
-              inline-flex content-center items-center rounded
-              py-1 px-2 gap-1 w-md
-              text-gray-11 dark:text-graydark-11 bg-gray-3 dark:bg-graydark-3 hover:bg-gray-4 dark:hover:bg-graydark-4
-              outline-none transition duration-75 cursor-pointer
-            "
+            class="inline-flex content-center items-center rounded py-1 px-2 gap-1 w-md text-neutral-11 bg-neutral-3 hover:bg-neutral-4 outline-none transition duration-75 cursor-pointer"
           >
             <MagnifyingGlassIcon class="size-4 stroke-2" />
             Search all cards
@@ -38,14 +36,9 @@ export const AppHeader: Component = () => {
         <li class="justify-self-end">
           <Button.Root
             onMouseDown={() => navigate("/settings", { replace: true })}
-            class="
-              inline-flex content-center items-center rounded
-              p-2 gap-1
-              text-gray-11 dark:text-graydark-11
-              outline-none transition duration-75 cursor-pointer
-            "
+            class="inline-flex content-center items-center rounded p-2 gap-1 text-neutral-11 hover:text-neutral-12 outline-none transition duration-75 cursor-pointer"
           >
-            <GearIcon class="size-6 text-gray-11 hover:text-gray-12 dark:text-graydark-11 dark:hover:text-graydark-12 stroke-2" />
+            <GearIcon class="size-6 stroke-2" />
           </Button.Root>
         </li>
       </ul>
