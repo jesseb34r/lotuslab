@@ -8,14 +8,14 @@ import {
 } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 
-import { Button } from "@kobalte/core/button";
-import { Dialog } from "@kobalte/core/dialog";
 import { Select } from "@kobalte/core/select";
 import { TextField } from "@kobalte/core/text-field";
 import { ToggleGroup } from "@kobalte/core/toggle-group";
 
 import { active_project_id, set_active_project_id } from "../index.tsx";
 import { MoxcelDatabase } from "../lib/db.ts";
+import { Button } from "../components/ui/button";
+import { Dialog } from "../components/ui/dialog";
 
 const funny_deck_names = [
   "Tezzeret Control",
@@ -52,7 +52,7 @@ export function HomePage() {
 
   const navigate = useNavigate();
 
-  async function handle_new_project_form_submit() {
+  async function handle_new_project() {
     const db = await MoxcelDatabase.db();
     const new_project_id = await db.create_project(new_project_name());
 
@@ -107,7 +107,7 @@ export function HomePage() {
             open={import_dialog_open()}
             onOpenChange={set_import_dialog_open}
           >
-            <Dialog.Trigger
+            <Button
               onMouseDown={() => {
                 const randomIndex = Math.floor(
                   Math.random() * funny_deck_names.length,
@@ -115,137 +115,109 @@ export function HomePage() {
                 set_new_project_name(funny_deck_names[randomIndex]);
                 set_import_dialog_open(true);
               }}
-              class="
-                px-2 py-1 rounded cursor-pointer
-                bg-success-3 hover:bg-success-4
-              "
+              variant="success"
             >
               New
-            </Dialog.Trigger>
-            <Dialog.Portal>
-              <Dialog.Content
-                class="
-                  flex flex-col items-center justify-center gap-4
-                  fixed top-20 left-[50%] translate-x-[-50%]
-                  px-10 py-8 rounded
-                  bg-neutral-3
-                "
+            </Button>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>New Project</Dialog.Title>
+              </Dialog.Header>
+              <TextField
+                value={new_project_name()}
+                onChange={set_new_project_name}
+                class="flex flex-col"
               >
-                <Dialog.Title class="text-2xl mb-4">New Project</Dialog.Title>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handle_new_project_form_submit();
-                  }}
-                  class="flex flex-col items-stretch justify-center"
+                <TextField.Label>Name</TextField.Label>
+                <TextField.Input
+                  class="mb-4 bg-neutral-7 px-1 rounded"
+                  autocorrect="off"
+                />
+              </TextField>
+              <Select
+                value={new_project_format()}
+                onChange={set_new_project_format}
+                options={["list", "modern", "commander", "cube"]}
+                itemComponent={(props) => (
+                  <Select.Item
+                    item={props.item}
+                    class="px-4 py-2 cursor-pointer data-highlighted:bg-neutral-5"
+                  >
+                    <Select.ItemLabel>{props.item.rawValue}</Select.ItemLabel>
+                    <Select.ItemIndicator>⋅</Select.ItemIndicator>
+                  </Select.Item>
+                )}
+              >
+                <Select.Trigger class="bg-neutral-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
+                  <Select.Value<string>>
+                    {(state) => state.selectedOption()}
+                  </Select.Value>
+                </Select.Trigger>
+                <Select.Portal>
+                  <Select.Content>
+                    <Select.Listbox />
+                  </Select.Content>
+                </Select.Portal>
+              </Select>
+              <ToggleGroup
+                value={import_source()}
+                onChange={set_import_source}
+                class="flex gap-2 mb-4"
+              >
+                <ToggleGroup.Item
+                  value="blank"
+                  class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5"
                 >
-                  <TextField
-                    value={new_project_name()}
-                    onChange={set_new_project_name}
-                    class="flex flex-col"
-                  >
-                    <TextField.Label>Name</TextField.Label>
-                    <TextField.Input
-                      class="mb-4 bg-neutral-7 px-1 rounded"
-                      autocorrect="off"
-                    />
-                  </TextField>
-                  <Select
-                    value={new_project_format()}
-                    onChange={set_new_project_format}
-                    options={["list", "modern", "commander", "cube"]}
-                    itemComponent={(props) => (
-                      <Select.Item
-                        item={props.item}
-                        class="px-4 py-2 cursor-pointer data-highlighted:bg-neutral-5"
-                      >
-                        <Select.ItemLabel>
-                          {props.item.rawValue}
-                        </Select.ItemLabel>
-                        <Select.ItemIndicator>⋅</Select.ItemIndicator>
-                      </Select.Item>
-                    )}
-                  >
-                    <Select.Trigger class="bg-neutral-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
-                      <Select.Value<string>>
-                        {(state) => state.selectedOption()}
-                      </Select.Value>
-                    </Select.Trigger>
-                    <Select.Portal>
-                      <Select.Content>
-                        <Select.Listbox />
-                      </Select.Content>
-                    </Select.Portal>
-                  </Select>
-                  <ToggleGroup
-                    value={import_source()}
-                    onChange={set_import_source}
-                    class="flex gap-2 mb-4"
-                  >
-                    <ToggleGroup.Item
-                      value="blank"
-                      class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5"
+                  Blank
+                </ToggleGroup.Item>
+                <ToggleGroup.Item
+                  value="paste"
+                  class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5 "
+                >
+                  Paste
+                </ToggleGroup.Item>
+                <ToggleGroup.Item
+                  value="file"
+                  class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5"
+                >
+                  Import File
+                </ToggleGroup.Item>
+              </ToggleGroup>
+              <div class="mb-4">
+                <Switch>
+                  <Match when={import_source() === "paste"}>
+                    <TextField
+                      value={project_cards_pasted()}
+                      onChange={set_project_cards_pasted}
+                      class="flex flex-col"
                     >
-                      Blank
-                    </ToggleGroup.Item>
-                    <ToggleGroup.Item
-                      value="paste"
-                      class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5 "
-                    >
-                      Paste
-                    </ToggleGroup.Item>
-                    <ToggleGroup.Item
-                      value="file"
-                      class="px-2 py-1 rounded cursor-pointer bg-neutral-4 hover:bg-neutral-5 data-pressed:bg-neutral-5"
-                    >
-                      Import File
-                    </ToggleGroup.Item>
-                  </ToggleGroup>
-                  <div class="mb-4">
-                    <Switch>
-                      <Match when={import_source() === "paste"}>
-                        <TextField
-                          value={project_cards_pasted()}
-                          onChange={set_project_cards_pasted}
-                          class="flex flex-col"
-                        >
-                          <TextField.Label>Paste List</TextField.Label>
-                          <TextField.TextArea class="bg-neutral-7 px-1 rounded resize-none" />
-                        </TextField>
-                      </Match>
-                      <Match when={import_source() === "file"}>
-                        <div class="flex flex-col">
-                          <label for="file_input" class="mb-2">
-                            Select a file to import
-                          </label>
-                          <input
-                            id="file_input"
-                            type="file"
-                            accept=".txt,.csv"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) set_project_cards_filepath(file.name);
-                            }}
-                            class="bg-neutral-7 px-1 py-1 rounded"
-                          />
-                        </div>
-                      </Match>
-                    </Switch>
-                  </div>
-                  <Button
-                    onMouseDown={handle_new_project_form_submit}
-                    onKeyDown={(e: KeyboardEvent) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        handle_new_project_form_submit();
-                      }
-                    }}
-                    class="px-2 py-1 rounded self-end cursor-pointer bg-success-4 hover:bg-success-5"
-                  >
-                    Create
-                  </Button>
-                </form>
-              </Dialog.Content>
-            </Dialog.Portal>
+                      <TextField.Label>Paste List</TextField.Label>
+                      <TextField.TextArea class="bg-neutral-7 px-1 rounded resize-none" />
+                    </TextField>
+                  </Match>
+                  <Match when={import_source() === "file"}>
+                    <div class="flex flex-col">
+                      <label for="file_input" class="mb-2">
+                        Select a file to import
+                      </label>
+                      <input
+                        id="file_input"
+                        type="file"
+                        accept=".txt,.csv"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) set_project_cards_filepath(file.name);
+                        }}
+                        class="bg-neutral-7 px-1 py-1 rounded"
+                      />
+                    </div>
+                  </Match>
+                </Switch>
+              </div>
+              <Button onMouseDown={handle_new_project} variant="success">
+                Create
+              </Button>
+            </Dialog.Content>
           </Dialog>
         </div>
         <hr class="text-gray-dim" />
