@@ -10,6 +10,7 @@ import { HomePage } from "./pages/home_page";
 import { ProjectPage } from "./pages/project_page";
 import { SearchPage } from "./pages/search_page";
 import { SettingsPage } from "./pages/settings_page";
+import { ThemePreviewPage } from "./pages/theme_preview_page";
 import { NotFound } from "./pages/404";
 
 const AppLayout: ParentComponent = (props) => (
@@ -30,6 +31,7 @@ render(
       <Route path="/project" component={ProjectPage} />
       <Route path="/search" component={SearchPage} />
       <Route path="/settings" component={SettingsPage} />
+      <Route path="/theme_preview" component={ThemePreviewPage} />
       <Route path="*404" component={NotFound} />
     </Router>
   ),
