@@ -19,15 +19,39 @@ export class MoxcelDatabase {
   // Project CRUD methods
 
   /**
-   * Creates a new project with the given name.
+   * Creates a new project with the given name and format.
    *
-   * @param name - The name of the project to create.
    * @returns The index (id) of the new project.
    */
-  async create_project(name: string): Promise<number> {
-    const result = await this.db.execute("INSERT INTO projects (name) VALUES (?)", [name]);
+  async create_project(
+    name: string,
+    format: ProjectMetadata["format"],
+  ): Promise<number> {
+    const result = await this.db.execute(
+      "INSERT INTO projects (name, format) VALUES (?)",
+      [name, format],
+    );
 
     if (result.lastInsertId !== undefined) {
+      switch (format) {
+        case "list":
+          await this.create_list(result.lastInsertId, "list");
+          break;
+        case "cube":
+          await this.create_list(result.lastInsertId, "main");
+          await this.create_list(result.lastInsertId, "considering");
+          break;
+        case "commander":
+          await this.create_list(result.lastInsertId, "main");
+          await this.create_list(result.lastInsertId, "commander");
+          await this.create_list(result.lastInsertId, "considering");
+          break;
+        default:
+          await this.create_list(result.lastInsertId, "main");
+          await this.create_list(result.lastInsertId, "side");
+          break;
+      }
+
       return result.lastInsertId;
     } else {
       throw new Error("Failed to get last insert ID");
@@ -40,42 +64,53 @@ export class MoxcelDatabase {
    * @returns An array of ProjectMetadata objects for all projects.
    */
   async get_project_list(): Promise<ProjectMetadata[]> {
-    const result = await this.db.select<ProjectMetadata[]>("SELECT * FROM projects");
+    const result = await this.db.select<ProjectMetadata[]>(
+      "SELECT * FROM projects",
+    );
     return result;
   }
 
   /**
    * Retrieves a project by its ID.
    *
-   * @param id - The ID of the project to retrieve.
    * @returns The ProjectMetadata object if found, or null if not found.
    */
   async get_project_by_id(id: number): Promise<ProjectMetadata | null> {
-    const results = await this.db.select<ProjectMetadata[]>("SELECT * FROM projects WHERE id = ?", [id]);
+    const results = await this.db.select<ProjectMetadata[]>(
+      "SELECT * FROM projects WHERE id = ?",
+      [id],
+    );
     return results.length > 0 ? results[0] : null;
   }
 
   /**
    * Updates the metadata (name and/or description) of an existing project.
-   *
-   * @param id - The ID of the project to update.
-   * @param name - Optional new name of the project.
-   * @param description - Optional new description of the project.
    */
-  async update_project_metadata(id: number, name?: string, description?: string): Promise<void> {
+  async update_project_metadata(
+    id: number,
+    name?: string,
+    description?: string,
+  ): Promise<void> {
     if (name !== undefined && description !== undefined) {
-      await this.db.execute("UPDATE projects SET name = ?, description = ? WHERE id = ?", [name, description, id]);
+      await this.db.execute(
+        "UPDATE projects SET name = ?, description = ? WHERE id = ?",
+        [name, description, id],
+      );
     } else if (name !== undefined) {
-      await this.db.execute("UPDATE projects SET name = ? WHERE id = ?", [name, id]);
+      await this.db.execute("UPDATE projects SET name = ? WHERE id = ?", [
+        name,
+        id,
+      ]);
     } else if (description !== undefined) {
-      await this.db.execute("UPDATE projects SET description = ? WHERE id = ?", [description, id]);
+      await this.db.execute(
+        "UPDATE projects SET description = ? WHERE id = ?",
+        [description, id],
+      );
     }
   }
 
   /**
    * Deletes a project by its ID.
-   *
-   * @param id - The ID of the project to delete.
    */
   async delete_project(id: number): Promise<void> {
     await this.db.execute("DELETE FROM projects WHERE id = ?", [id]);
@@ -91,12 +126,15 @@ export class MoxcelDatabase {
    * @param description - Optional description of the list.
    * @returns The ID of the newly created list.
    */
-  async create_list(project_id: number, name: string, description?: string): Promise<number> {
-    const result = await this.db.execute("INSERT INTO lists (project_id, name, description) VALUES (?, ?, ?)", [
-      project_id,
-      name,
-      description ?? null,
-    ]);
+  async create_list(
+    project_id: number,
+    name: string,
+    description?: string,
+  ): Promise<number> {
+    const result = await this.db.execute(
+      "INSERT INTO lists (project_id, name, format, description) VALUES (?, ?, ?)",
+      [project_id, name, description ?? null],
+    );
 
     if (result.lastInsertId !== undefined) {
       return result.lastInsertId;
@@ -108,7 +146,6 @@ export class MoxcelDatabase {
   /**
    * Retrieves all lists belonging to a specific project.
    *
-   * @param project_id - The ID of the project to get lists from.
    * @returns An array of the ListMetadata of every list in the project.
    */
   async get_lists_by_project(project_id: number): Promise<ListMetadata[]> {
@@ -121,25 +158,32 @@ export class MoxcelDatabase {
 
   /**
    * Updates the metadata (name and/or description) of a list.
-   *
-   * @param id - The ID of the list to update.
-   * @param name - Optional new name of the list.
-   * @param description - Optional new description of the list.
    */
-  async update_list_metadata(id: number, name?: string, description?: string): Promise<void> {
+  async update_list_metadata(
+    id: number,
+    name?: string,
+    description?: string,
+  ): Promise<void> {
     if (name !== undefined && description !== undefined) {
-      await this.db.execute("UPDATE lists SET name = ?, description = ? WHERE id = ?", [name, description, id]);
+      await this.db.execute(
+        "UPDATE lists SET name = ?, description = ? WHERE id = ?",
+        [name, description, id],
+      );
     } else if (name !== undefined) {
-      await this.db.execute("UPDATE lists SET name = ? WHERE id = ?", [name, id]);
+      await this.db.execute("UPDATE lists SET name = ? WHERE id = ?", [
+        name,
+        id,
+      ]);
     } else if (description !== undefined) {
-      await this.db.execute("UPDATE lists SET description = ? WHERE id = ?", [description, id]);
+      await this.db.execute("UPDATE lists SET description = ? WHERE id = ?", [
+        description,
+        id,
+      ]);
     }
   }
 
   /**
    * Deletes a list by its ID.
-   *
-   * @param id - The ID of the list to delete.
    */
   async delete_list(id: number): Promise<void> {
     await this.db.execute("DELETE FROM lists WHERE id = ?", [id]);
@@ -150,17 +194,17 @@ export class MoxcelDatabase {
   /**
    * Adds a card to a list with optional notes.
    *
-   * @param list_id - The ID of the list to add the card to.
-   * @param card_id - The ID of the card being added.
-   * @param notes - Optional notes associated with the card in the list.
    * @returns The ID of the new cards_in_lists entry.
    */
-  async add_card_to_list(list_id: number, card_id: string, notes?: string): Promise<number> {
-    const result = await this.db.execute("INSERT INTO cards_in_lists (list_id, card_id, notes) VALUES (?, ?, ?)", [
-      list_id,
-      card_id,
-      notes ?? null,
-    ]);
+  async add_card_to_list(
+    list_id: number,
+    card_id: string,
+    notes?: string,
+  ): Promise<number> {
+    const result = await this.db.execute(
+      "INSERT INTO cards_in_lists (list_id, card_id, notes) VALUES (?, ?, ?)",
+      [list_id, card_id, notes ?? null],
+    );
     if (result.lastInsertId !== undefined) {
       return result.lastInsertId;
     } else {
@@ -172,7 +216,6 @@ export class MoxcelDatabase {
   /**
    * Retrieves all cards belonging to a specific list.
    *
-   * @param list_id - The ID of the list to get cards from.
    * @returns An array of CardMetadata of every card in the list.
    */
   async get_cards_in_list(list_id: number): Promise<CardMetadata[]> {
@@ -185,18 +228,16 @@ export class MoxcelDatabase {
 
   /**
    * Updates the notes for a card in a list.
-   *
-   * @param id - The ID of the cards_in_lists entry to update.
-   * @param notes - Optional new notes for the card.
    */
   async update_card_in_list(id: number, notes?: string): Promise<void> {
-    await this.db.execute("UPDATE cards_in_lists SET notes = ? WHERE id = ?", [notes ?? null, id]);
+    await this.db.execute("UPDATE cards_in_lists SET notes = ? WHERE id = ?", [
+      notes ?? null,
+      id,
+    ]);
   }
 
   /**
    * Removes a card from a list by deleting the cards_in_lists entry.
-   *
-   * @param id - The ID of the cards_in_lists entry to delete.
    */
   async remove_card_from_list(id: number): Promise<void> {
     await this.db.execute("DELETE FROM cards_in_lists WHERE id = ?", [id]);
@@ -207,11 +248,13 @@ export class MoxcelDatabase {
   /**
    * Retrieves card data by card ID.
    *
-   * @param card_id - The ID of the card to retrieve.
    * @returns The card record if found, or null if not found.
    */
   async get_card_by_id(card_id: string): Promise<Card | null> {
-    const results = await this.db.select<Card[]>("SELECT * FROM cards WHERE id = ?", [card_id]);
+    const results = await this.db.select<Card[]>(
+      "SELECT * FROM cards WHERE id = ?",
+      [card_id],
+    );
     return results.length > 0 ? results[0] : null;
   }
 }
@@ -219,6 +262,15 @@ export class MoxcelDatabase {
 export type ProjectMetadata = {
   id: number;
   name: string;
+  format:
+    | "list"
+    | "cube"
+    | "standard"
+    | "modern"
+    | "legacy"
+    | "vintage"
+    | "pauper"
+    | "commander";
   description?: string;
   primer?: string;
 };
