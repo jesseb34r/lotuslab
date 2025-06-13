@@ -1,14 +1,21 @@
 import { Button, Separator } from "@kobalte/core";
 
-import { test_cube_sorted } from "../../test-files/test_cube_sorted";
 import { type Component, For, Show } from "solid-js";
+import { test_cube_sorted } from "../../test-files/test_cube_sorted";
 
 export function ListPageOld() {
   type Card = {
     name: string;
     color: "W" | "U" | "B" | "R" | "G" | "M" | "C" | "L";
     cmc: number;
-    type: "creature" | "planeswalker" | "instant" | "sorcery" | "enchantment" | "artifact" | "land";
+    type:
+      | "creature"
+      | "planeswalker"
+      | "instant"
+      | "sorcery"
+      | "enchantment"
+      | "artifact"
+      | "land";
   };
 
   const list = test_cube_sorted;
@@ -121,7 +128,9 @@ export function ListPageOld() {
 
       <div class="flex gap-2 mx-auto">
         <For each={list.boards[0].cards as Card[][][][]}>
-          {(card_color_section) => <CardColorColumn cards={card_color_section} />}
+          {(card_color_section) => (
+            <CardColorColumn cards={card_color_section} />
+          )}
         </For>
       </div>
     </main>

@@ -23,14 +23,11 @@ export class MoxcelDatabase {
    *
    * @returns The index (id) of the new project.
    */
-  async create_project(
-    name: string,
-    format: ProjectMetadata["format"],
-  ): Promise<number> {
-    const result = await this.db.execute(
-      "INSERT INTO projects (name, format) VALUES (?)",
-      [name, format],
-    );
+  async create_project(name: string, format: ProjectMetadata["format"]): Promise<number> {
+    const result = await this.db.execute("INSERT INTO projects (name, format) VALUES (?)", [
+      name,
+      format,
+    ]);
 
     if (result.lastInsertId !== undefined) {
       switch (format) {
@@ -64,9 +61,7 @@ export class MoxcelDatabase {
    * @returns An array of ProjectMetadata objects for all projects.
    */
   async get_project_list(): Promise<ProjectMetadata[]> {
-    const result = await this.db.select<ProjectMetadata[]>(
-      "SELECT * FROM projects",
-    );
+    const result = await this.db.select<ProjectMetadata[]>("SELECT * FROM projects");
     return result;
   }
 
@@ -76,36 +71,26 @@ export class MoxcelDatabase {
    * @returns The ProjectMetadata object if found, or null if not found.
    */
   async get_project_by_id(id: number): Promise<ProjectMetadata | null> {
-    const results = await this.db.select<ProjectMetadata[]>(
-      "SELECT * FROM projects WHERE id = ?",
-      [id],
-    );
+    const results = await this.db.select<ProjectMetadata[]>("SELECT * FROM projects WHERE id = ?", [
+      id,
+    ]);
     return results.length > 0 ? results[0] : null;
   }
 
   /**
    * Updates the metadata (name and/or description) of an existing project.
    */
-  async update_project_metadata(
-    id: number,
-    name?: string,
-    description?: string,
-  ): Promise<void> {
+  async update_project_metadata(id: number, name?: string, description?: string): Promise<void> {
     if (name !== undefined && description !== undefined) {
-      await this.db.execute(
-        "UPDATE projects SET name = ?, description = ? WHERE id = ?",
-        [name, description, id],
-      );
-    } else if (name !== undefined) {
-      await this.db.execute("UPDATE projects SET name = ? WHERE id = ?", [
+      await this.db.execute("UPDATE projects SET name = ?, description = ? WHERE id = ?", [
         name,
+        description,
         id,
       ]);
+    } else if (name !== undefined) {
+      await this.db.execute("UPDATE projects SET name = ? WHERE id = ?", [name, id]);
     } else if (description !== undefined) {
-      await this.db.execute(
-        "UPDATE projects SET description = ? WHERE id = ?",
-        [description, id],
-      );
+      await this.db.execute("UPDATE projects SET description = ? WHERE id = ?", [description, id]);
     }
   }
 
@@ -126,11 +111,7 @@ export class MoxcelDatabase {
    * @param description - Optional description of the list.
    * @returns The ID of the newly created list.
    */
-  async create_list(
-    project_id: number,
-    name: string,
-    description?: string,
-  ): Promise<number> {
+  async create_list(project_id: number, name: string, description?: string): Promise<number> {
     const result = await this.db.execute(
       "INSERT INTO lists (project_id, name, format, description) VALUES (?, ?, ?)",
       [project_id, name, description ?? null],
@@ -159,26 +140,17 @@ export class MoxcelDatabase {
   /**
    * Updates the metadata (name and/or description) of a list.
    */
-  async update_list_metadata(
-    id: number,
-    name?: string,
-    description?: string,
-  ): Promise<void> {
+  async update_list_metadata(id: number, name?: string, description?: string): Promise<void> {
     if (name !== undefined && description !== undefined) {
-      await this.db.execute(
-        "UPDATE lists SET name = ?, description = ? WHERE id = ?",
-        [name, description, id],
-      );
-    } else if (name !== undefined) {
-      await this.db.execute("UPDATE lists SET name = ? WHERE id = ?", [
+      await this.db.execute("UPDATE lists SET name = ?, description = ? WHERE id = ?", [
         name,
-        id,
-      ]);
-    } else if (description !== undefined) {
-      await this.db.execute("UPDATE lists SET description = ? WHERE id = ?", [
         description,
         id,
       ]);
+    } else if (name !== undefined) {
+      await this.db.execute("UPDATE lists SET name = ? WHERE id = ?", [name, id]);
+    } else if (description !== undefined) {
+      await this.db.execute("UPDATE lists SET description = ? WHERE id = ?", [description, id]);
     }
   }
 
@@ -196,11 +168,7 @@ export class MoxcelDatabase {
    *
    * @returns The ID of the new cards_in_lists entry.
    */
-  async add_card_to_list(
-    list_id: number,
-    card_id: string,
-    notes?: string,
-  ): Promise<number> {
+  async add_card_to_list(list_id: number, card_id: string, notes?: string): Promise<number> {
     const result = await this.db.execute(
       "INSERT INTO cards_in_lists (list_id, card_id, notes) VALUES (?, ?, ?)",
       [list_id, card_id, notes ?? null],
@@ -230,10 +198,7 @@ export class MoxcelDatabase {
    * Updates the notes for a card in a list.
    */
   async update_card_in_list(id: number, notes?: string): Promise<void> {
-    await this.db.execute("UPDATE cards_in_lists SET notes = ? WHERE id = ?", [
-      notes ?? null,
-      id,
-    ]);
+    await this.db.execute("UPDATE cards_in_lists SET notes = ? WHERE id = ?", [notes ?? null, id]);
   }
 
   /**
@@ -251,26 +216,26 @@ export class MoxcelDatabase {
    * @returns The card record if found, or null if not found.
    */
   async get_card_by_id(card_id: string): Promise<Card | null> {
-    const results = await this.db.select<Card[]>(
-      "SELECT * FROM cards WHERE id = ?",
-      [card_id],
-    );
+    const results = await this.db.select<Card[]>("SELECT * FROM cards WHERE id = ?", [card_id]);
     return results.length > 0 ? results[0] : null;
   }
 }
 
+export const project_format_options = [
+  "list",
+  "cube",
+  "standard",
+  "modern",
+  "legacy",
+  "vintage",
+  "pauper",
+  "commander",
+] as const;
+
 export type ProjectMetadata = {
   id: number;
   name: string;
-  format:
-    | "list"
-    | "cube"
-    | "standard"
-    | "modern"
-    | "legacy"
-    | "vintage"
-    | "pauper"
-    | "commander";
+  format: (typeof project_format_options)[number];
   description?: string;
   primer?: string;
 };

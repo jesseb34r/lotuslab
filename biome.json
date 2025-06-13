@@ -1,5 +1,9 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "ignore": [".bun", "dist", "node_modules", "test-files", "src-tauri"]
+  },
+  "organizeImports": { "enabled": true },
   "linter": {
     "rules": {
       "a11y": {
@@ -15,5 +19,9 @@
         "noUselessElse": "off"
       }
     }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space"
   }
 }

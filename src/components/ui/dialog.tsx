@@ -1,9 +1,9 @@
 import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
 import { splitProps } from "solid-js";
 
+import { Button as ButtonPrimitive } from "@kobalte/core/button";
 import * as DialogPrimitive from "@kobalte/core/dialog";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
-import { Button as ButtonPrimitive } from "@kobalte/core/button";
 
 import { cn } from "../../lib/utils";
 

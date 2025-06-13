@@ -1,8 +1,8 @@
-import { For, Show, createSignal } from "solid-js";
 import { Button } from "@kobalte/core";
-import { open } from "@tauri-apps/plugin-dialog";
-import { invoke } from "@tauri-apps/api/core";
 import type { ScryfallColors, ScryfallImageUris } from "@scryfall/api-types";
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
+import { For, Show, createSignal } from "solid-js";
 import { Portal } from "solid-js/web";
 
 type Card = {

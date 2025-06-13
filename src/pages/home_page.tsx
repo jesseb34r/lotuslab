@@ -1,21 +1,25 @@
-import {
-  createResource,
-  createSignal,
-  For,
-  Match,
-  Suspense,
-  Switch,
-} from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import { For, Show, Suspense, createResource, createSignal } from "solid-js";
 
 import { Select } from "@kobalte/core/select";
-import { ToggleGroup } from "@kobalte/core/toggle-group";
 
-import { active_project_id, set_active_project_id } from "../index.tsx";
-import { MoxcelDatabase } from "../lib/db.ts";
+import {
+  type ColumnDef,
+  createSolidTable,
+  flexRender,
+  getCoreRowModel,
+} from "@tanstack/solid-table";
+
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
+import { Table } from "../components/ui/table.tsx";
 import { TextField } from "../components/ui/text-field";
+import { active_project_id, set_active_project_id } from "../index.tsx";
+import {
+  MoxcelDatabase,
+  type ProjectMetadata,
+  project_format_options,
+} from "../lib/db.ts";
 
 export function HomePage() {
   const [projects, { refetch }] = createResource(async () => {
@@ -23,56 +27,10 @@ export function HomePage() {
     return db.get_project_list();
   });
 
-  const [import_dialog_open, set_import_dialog_open] = createSignal(false);
-  const [import_source, set_import_source] = createSignal<
-    "blank" | "paste" | "file"
-  >("blank");
-  const [new_project_format, set_new_project_format] = createSignal<
-    "list" | "modern" | "commander" | "cube"
-  >("list");
-  const [new_project_name, set_new_project_name] = createSignal("");
-  const [project_cards_pasted, set_project_cards_pasted] = createSignal("");
-  const [_project_cards_filepath, set_project_cards_filepath] =
-    createSignal("");
+  const [new_project_dialog_open, set_new_project_dialog_open] =
+    createSignal(false);
 
   const navigate = useNavigate();
-
-  async function handle_new_project() {
-    const db = await MoxcelDatabase.db();
-    const new_project_id = await db.create_project(new_project_name());
-
-    // Add initial lists depending on the selected project format
-    const format = new_project_format();
-    switch (format) {
-      case "list":
-        await db.create_list(new_project_id, "list");
-        break;
-      case "modern":
-        await db.create_list(new_project_id, "main deck");
-        await db.create_list(new_project_id, "sideboard");
-        break;
-      case "commander":
-        await db.create_list(new_project_id, "commander");
-        await db.create_list(new_project_id, "main deck");
-        break;
-      case "cube":
-        await db.create_list(new_project_id, "main");
-        break;
-    }
-
-    set_active_project_id(new_project_id);
-    refetch();
-
-    // Clear all form input signals after submitting.
-    set_import_dialog_open(false);
-    set_import_source("blank");
-    set_new_project_format("list");
-    set_new_project_name("");
-    set_project_cards_pasted("");
-    set_project_cards_filepath("");
-
-    // navigate("/project", { replace: true });
-  }
 
   async function handle_delete_project(id: number) {
     const db = await MoxcelDatabase.db();
@@ -83,111 +41,152 @@ export function HomePage() {
     await db.delete_project(id);
   }
 
-  const HomePageHeader = () => {
-    const [new_project_dialog_open, set_new_project_dialog_open] =
-      createSignal(false);
+  const NewProjectDialog = () => {
+    const [project_name, set_project_name] = createSignal("");
+    const [project_format, set_project_format] =
+      createSignal<ProjectMetadata["format"]>("list");
 
-    const NewProjectDialog = () => {
-      const [project_name, set_project_name] = createSignal("");
-      const [project_format, set_project_format] = createSignal<
-        "list" | "modern" | "commander" | "cube"
-      >("list");
-
-      const handle_new_project = async () => {
-        const db = await MoxcelDatabase.db();
-        const new_project_id = await db.create_project(new_project_name());
-
-        // Add initial lists depending on the selected project format
-        const format = new_project_format();
-        switch (format) {
-          case "list":
-            await db.create_list(new_project_id, "list");
-            break;
-          case "modern":
-            await db.create_list(new_project_id, "main deck");
-            await db.create_list(new_project_id, "sideboard");
-            break;
-          case "commander":
-            await db.create_list(new_project_id, "commander");
-            await db.create_list(new_project_id, "main deck");
-            break;
-          case "cube":
-            await db.create_list(new_project_id, "main");
-            break;
-        }
-
-        set_active_project_id(new_project_id);
-        navigate("/project", { replace: true });
-      };
-
-      return (
-        <Dialog
-          open={new_project_dialog_open()}
-          onOpenChange={set_new_project_dialog_open}
-        >
-          <Button
-            onMouseDown={() => set_new_project_dialog_open(true)}
-            variant="success"
-          >
-            New
-          </Button>
-          <Dialog.Content>
-            <Dialog.CloseButtonX
-              onMouseDown={() => set_new_project_dialog_open(false)}
-            />
-            <Dialog.Header>
-              <Dialog.Title>New Project</Dialog.Title>
-            </Dialog.Header>
-            <TextField value={project_name()} onChange={set_project_name}>
-              <TextField.Label>Name</TextField.Label>
-              <TextField.Input />
-            </TextField>
-            <Select
-              value={project_format()}
-              onChange={set_project_format}
-              options={["list", "modern", "commander", "cube"]}
-              itemComponent={(props) => (
-                <Select.Item
-                  item={props.item}
-                  class="px-4 py-2 cursor-pointer data-highlighted:bg-neutral-5"
-                >
-                  <Select.ItemLabel>{props.item.rawValue}</Select.ItemLabel>
-                  <Select.ItemIndicator>⋅</Select.ItemIndicator>
-                </Select.Item>
-              )}
-            >
-              <Select.Trigger class="bg-neutral-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
-                <Select.Value<string>>
-                  {(state) => state.selectedOption()}
-                </Select.Value>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Content>
-                  <Select.Listbox />
-                </Select.Content>
-              </Select.Portal>
-            </Select>
-            <Button onMouseDown={handle_new_project} variant="success">
-              Create
-            </Button>
-          </Dialog.Content>
-        </Dialog>
+    const handle_new_project = async () => {
+      const db = await MoxcelDatabase.db();
+      const project_id = await db.create_project(
+        project_name(),
+        project_format(),
       );
+
+      set_active_project_id(project_id);
+      navigate("/project", { replace: true });
     };
 
     return (
-      <div>
-        <h1 class="text-4xl mb-margin">Projects</h1>
-        <div class="flex justify-between">
-          <div class="flex gap-margin items-center">
-            <NewProjectDialog />
-            <Button>New Folder</Button>
-          </div>
-          <div class="flex gap-margin items-center">
-            <Button>Search</Button>
-            <Button>Sort</Button>
-          </div>
-        </div>
+      <Dialog
+        open={new_project_dialog_open()}
+        onOpenChange={set_new_project_dialog_open}
+      >
+        <Button
+          onMouseDown={() => set_new_project_dialog_open(true)}
+          variant="success"
+        >
+          New
+        </Button>
+        <Dialog.Content>
+          <Dialog.CloseButtonX
+            onMouseDown={() => set_new_project_dialog_open(false)}
+          />
+          <Dialog.Header>
+            <Dialog.Title>New Project</Dialog.Title>
+          </Dialog.Header>
+          <TextField value={project_name()} onChange={set_project_name}>
+            <TextField.Label>Name</TextField.Label>
+            <TextField.Input />
+          </TextField>
+          <Select
+            value={project_format()}
+            onChange={set_project_format}
+            options={[...project_format_options]}
+            itemComponent={(props) => (
+              <Select.Item
+                item={props.item}
+                class="px-4 py-2 cursor-pointer data-highlighted:bg-neutral-5"
+              >
+                <Select.ItemLabel>{props.item.rawValue}</Select.ItemLabel>
+                <Select.ItemIndicator>⋅</Select.ItemIndicator>
+              </Select.Item>
+            )}
+          >
+            <Select.Trigger class="bg-neutral-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
+              <Select.Value<string>>
+                {(state) => state.selectedOption()}
+              </Select.Value>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content>
+                <Select.Listbox />
+              </Select.Content>
+            </Select.Portal>
+          </Select>
+          <Button onMouseDown={handle_new_project} variant="success">
+            Create
+          </Button>
+        </Dialog.Content>
+      </Dialog>
+    );
+  };
+
+  const ProjectTable = () => {
+    type ProjectColumns = Pick<ProjectMetadata, "name" | "format">;
+
+    const columns: ColumnDef<ProjectColumns>[] = [
+      {
+        accessorKey: "name",
+        header: "Name",
+      },
+      {
+        accessorKey: "format",
+        header: "Format",
+      },
+    ];
+
+    const table = createSolidTable({
+      get data() {
+        return projects()!;
+      },
+      get columns() {
+        return columns;
+      },
+      getCoreRowModel: getCoreRowModel(),
+    });
+
+    return (
+      <div class="rounded-md border">
+        <Table>
+          <Table.Header>
+            <For each={table.getHeaderGroups()}>
+              {(header_group) => (
+                <Table.Row>
+                  <For each={header_group.headers}>
+                    {(header) => (
+                      <Table.Head colSpan={header.colSpan}>
+                        <Show when={!header.isPlaceholder}>
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                        </Show>
+                      </Table.Head>
+                    )}
+                  </For>
+                </Table.Row>
+              )}
+            </For>
+          </Table.Header>
+          <Table.Body>
+            <Show
+              when={table.getRowModel().rows?.length}
+              fallback={
+                <Table.Row>
+                  <Table.Cell colSpan={columns.length}>No results.</Table.Cell>
+                </Table.Row>
+              }
+            >
+              <For each={table.getRowModel().rows}>
+                {(row) => (
+                  <Table.Row data-state={row.getIsSelected() && "selected"}>
+                    <For each={row.getVisibleCells()}>
+                      {(cell) => (
+                        <Table.Cell>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </Table.Cell>
+                      )}
+                    </For>
+                  </Table.Row>
+                )}
+              </For>
+            </Show>
+          </Table.Body>
+        </Table>
       </div>
     );
   };
@@ -195,8 +194,23 @@ export function HomePage() {
   return (
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
       <div class="flex flex-col gap-2">
-        <HomePageHeader />
+        {/* Header */}
+        <div>
+          <h1 class="text-4xl mb-margin">Projects</h1>
+          <div class="flex justify-between">
+            <div class="flex gap-margin items-center">
+              <NewProjectDialog />
+              <Button>New Folder</Button>
+            </div>
+            <div class="flex gap-margin items-center">
+              <Button>Search</Button>
+              <Button>Sort</Button>
+            </div>
+          </div>
+        </div>
         <hr class="text-gray-dim" />
+
+        {/* Projects */}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           <Suspense>
             <For each={projects()}>

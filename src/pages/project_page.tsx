@@ -1,20 +1,20 @@
+import { Button } from "@kobalte/core/button";
+import { Dialog } from "@kobalte/core/dialog";
+import { TextField } from "@kobalte/core/text-field";
+import type { ScryfallCard } from "@scryfall/api-types";
 import {
   type Component,
-  createResource,
-  createSignal,
   For,
   Show,
   Suspense,
+  createResource,
+  createSignal,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-import type { ScryfallCard } from "@scryfall/api-types";
-import { Dialog } from "@kobalte/core/dialog";
-import { TextField } from "@kobalte/core/text-field";
-import { Button } from "@kobalte/core/button";
 
 import { active_project_id } from "../index.tsx";
-import type { Card } from "../lib/project.ts";
 import { MoxcelDatabase } from "../lib/db";
+import type { Card } from "../lib/project.ts";
 
 export function ProjectPage() {
   const [project_metadata, { refetch: refetch_project_metadata }] =

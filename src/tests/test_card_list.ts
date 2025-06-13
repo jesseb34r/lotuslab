@@ -23,7 +23,10 @@ Island
     console.log(`Found ${parsed_list.length} unique cards`);
 
     // Count total cards
-    const total_cards = parsed_list.reduce((total, card) => total + card.quantity, 0);
+    const total_cards = parsed_list.reduce(
+      (total, card) => total + card.quantity,
+      0,
+    );
     console.log(`Total cards in the list: ${total_cards}`);
   } catch (error) {
     console.error("Error parsing card list:", error);

@@ -1,9 +1,9 @@
-import { createSignal, For } from "solid-js";
+import { For, createSignal } from "solid-js";
 
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
-import { TextField } from "../components/ui/text-field";
 import { Table } from "../components/ui/table";
+import { TextField } from "../components/ui/text-field";
 
 export function ThemePreviewPage() {
   const [dialog_open, set_dialog_open] = createSignal(false);
