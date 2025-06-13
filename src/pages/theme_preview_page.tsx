@@ -1,10 +1,40 @@
-import { createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
+
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
 import { TextField } from "../components/ui/text-field";
+import { Table } from "../components/ui/table";
 
 export function ThemePreviewPage() {
   const [dialog_open, set_dialog_open] = createSignal(false);
+
+  const table_example_projects = [
+    {
+      name: "mortal combat v2",
+      format: "cube",
+      date_modified: "2024-12-13",
+    },
+    {
+      name: "fundamentos",
+      format: "cube",
+      date_modified: "2025-04-20",
+    },
+    {
+      name: "amulet titan",
+      format: "modern",
+      date_modified: "2025-05-08",
+    },
+    {
+      name: "br darcy",
+      format: "modern",
+      date_modified: "2023-05-02",
+    },
+    {
+      name: "optimized b1 vega",
+      format: "commander",
+      date_modified: "2025-03-18",
+    },
+  ];
 
   return (
     <main class="p-margin flex flex-col gap-margin w-min mx-auto items-center">
@@ -106,6 +136,27 @@ export function ThemePreviewPage() {
           </Dialog.Content>
         </Dialog>
       </div>
+      <h1 class="font-bold text-2xl">Table</h1>
+      <Table>
+        <Table.Header>
+          <Table.Row>
+            <Table.Head>Name</Table.Head>
+            <Table.Head>Format</Table.Head>
+            <Table.Head>Date Modified</Table.Head>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          <For each={table_example_projects}>
+            {(project) => (
+              <Table.Row>
+                <Table.Cell class="font-medium">{project.name}</Table.Cell>
+                <Table.Cell>{project.format}</Table.Cell>
+                <Table.Cell>{project.date_modified}</Table.Cell>
+              </Table.Row>
+            )}
+          </For>
+        </Table.Body>
+      </Table>
     </main>
   );
 }
