@@ -62,7 +62,7 @@ const Overlay = <T extends ValidComponent = "div">(
   const [, rest] = splitProps(props as DialogOverlayProps, ["class"]);
   return (
     <DialogPrimitive.Overlay
-      class={cn("fixed inset-0 z-50 bg-overlay-2", props.class)}
+      class={cn("fixed inset-0 z-50 bg-overlay-10", props.class)}
       {...rest}
     />
   );
