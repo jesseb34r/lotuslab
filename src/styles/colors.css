@@ -29,19 +29,33 @@
     --color-neutral-11: #b4b4b4;
     --color-neutral-12: #eeeeee;
 
-    /* radix graydarka */
-    --color-overlay-1: #00000000;
-    --color-overlay-2: #ffffff09;
-    --color-overlay-3: #ffffff12;
-    --color-overlay-4: #ffffff1b;
-    --color-overlay-5: #ffffff22;
-    --color-overlay-6: #ffffff2c;
-    --color-overlay-7: #ffffff3b;
-    --color-overlay-8: #ffffff55;
-    --color-overlay-9: #ffffff64;
-    --color-overlay-10: #ffffff72;
-    --color-overlay-11: #ffffffaf;
-    --color-overlay-12: #ffffffed;
+    /* radix graydarkA */
+    --color-shadow-1: #00000000;
+    --color-shadow-2: #ffffff09;
+    --color-shadow-3: #ffffff12;
+    --color-shadow-4: #ffffff1b;
+    --color-shadow-5: #ffffff22;
+    --color-shadow-6: #ffffff2c;
+    --color-shadow-7: #ffffff3b;
+    --color-shadow-8: #ffffff55;
+    --color-shadow-9: #ffffff64;
+    --color-shadow-10: #ffffff72;
+    --color-shadow-11: #ffffffaf;
+    --color-shadow-12: #ffffffed;
+
+    /* radix grayA */
+    --color-overlay-1: #00000003;
+    --color-overlay-2: #00000006;
+    --color-overlay-3: #0000000f;
+    --color-overlay-4: #00000017;
+    --color-overlay-5: #0000001f;
+    --color-overlay-6: #00000026;
+    --color-overlay-7: #00000031;
+    --color-overlay-8: #00000044;
+    --color-overlay-9: #00000072;
+    --color-overlay-10: #0000007c;
+    --color-overlay-11: #0000009b;
+    --color-overlay-12: #000000df;
 
     /* radix grassdark */
     --color-success-1: #0e1511;
