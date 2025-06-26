@@ -1,4 +1,4 @@
-import { createAsync, useNavigate } from "@solidjs/router";
+import { createAsync, query, useNavigate } from "@solidjs/router";
 import { For, Show, Suspense, createResource, createSignal } from "solid-js";
 
 import { Select } from "@kobalte/core/select";
@@ -22,6 +22,11 @@ import {
 } from "../lib/db.ts";
 
 export function HomePage() {
+  const projects = query(async () => {
+    const db = await MoxcelDatabase.db();
+    return db.get_project_list();
+  }, "get_project_list");
+
   const [new_project_dialog_open, set_new_project_dialog_open] =
     createSignal(false);
 
@@ -108,10 +113,10 @@ export function HomePage() {
   };
 
   const ProjectTable = () => {
-    const projects = createAsync(async () => {
-      const db = await MoxcelDatabase.db();
-      return db.get_project_list();
-    });
+    // const projects = createAsync(async () => {
+    //   const db = await MoxcelDatabase.db();
+    //   return db.get_project_list();
+    // });
 
     type ProjectColumns = Pick<ProjectMetadata, "name" | "format">;
 
@@ -211,9 +216,9 @@ export function HomePage() {
         <hr class="text-gray-dim" />
 
         {/* Projects */}
-        {/* <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           <Suspense>
-            <For each={projects()}>
+            <For each={projects}>
               {(project) => (
                 <Button
                   class="relative p-4 rounded bg-neutral-3 cursor-pointer"
@@ -227,7 +232,7 @@ export function HomePage() {
                     class="absolute top-2 right-2 p-2 rounded cursor-pointer bg-danger-3 hover:bg-danger-9"
                     onMouseDown={(e: MouseEvent) => {
                       e.stopPropagation();
-                      handle_delete_project(project.id).then(refetch);
+                      handle_delete_project(project.id);
                     }}
                   >
                     ×
@@ -236,8 +241,7 @@ export function HomePage() {
               )}
             </For>
           </Suspense>
-        </div> */}
-        <ProjectTable />
+        </div>
       </div>
     </main>
   );

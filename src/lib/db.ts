@@ -1,3 +1,4 @@
+import { query } from "@solidjs/router";
 import Database from "@tauri-apps/plugin-sql";
 
 export class MoxcelDatabase {
@@ -63,12 +64,10 @@ export class MoxcelDatabase {
    *
    * @returns An array of ProjectMetadata objects for all projects.
    */
-  async get_project_list(): Promise<ProjectMetadata[]> {
-    const result = await this.db.select<ProjectMetadata[]>(
-      "SELECT * FROM projects",
-    );
-    return result;
-  }
+  get_project_list = query(
+    () => this.db.select<ProjectMetadata[]>("SELECT * FROM projects"),
+    "project_list",
+  );
 
   /**
    * Retrieves a project by its ID.
