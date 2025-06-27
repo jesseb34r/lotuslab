@@ -42,20 +42,18 @@ export function HomePage() {
 
   return (
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
-      <div class="flex flex-col gap-2">
-        {/* Header */}
-        <div class="flex justify-between">
-          <h1 class="text-4xl mb-margin">Projects</h1>
-          <NewProjectDialog />
-        </div>
-
-        {/* Projects */}
-        <Show when={projects()}>
-          {(safe_projects) => (
-            <ProjectTable data={safe_projects()} columns={columns} />
-          )}
-        </Show>
+      {/* Header */}
+      <div class="flex justify-between mb-margin">
+        <h1 class="text-4xl">Projects</h1>
+        <NewProjectDialog />
       </div>
+
+      {/* Projects */}
+      <Show when={projects()}>
+        {(safe_projects) => (
+          <ProjectTable data={safe_projects()} columns={columns} />
+        )}
+      </Show>
     </main>
   );
 }

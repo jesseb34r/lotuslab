@@ -231,7 +231,7 @@ export function ProjectPage() {
       >
         <Dialog.Trigger
           onMouseDown={() => set_project_settings_dialog_open(true)}
-          class="absolute top-8 right-8 px-2 py-1 rounded cursor-pointer bg-success-3 hover:bg-success-4"
+          class="px-2 py-1 rounded cursor-pointer bg-success-3 hover:bg-success-4"
         >
           Edit
         </Dialog.Trigger>
@@ -305,12 +305,20 @@ export function ProjectPage() {
   );
 
   return (
-    <main class="relative flex flex-col p-8">
+    <main class="flex flex-col pt-10 mx-auto w-[80%]">
       <Suspense fallback="resource not loaded">
-        <h1 class="text-2xl font-medium pb-6">{project_metadata()?.name}</h1>
-        <h2 class="font-bold">Description</h2>
-        <p>{project_metadata()?.description}</p>
-        <hr class="text-neutral-11 my-4" />
+        <div class="flex justify-between mb-margin">
+          <h1 class="text-4xl">{project_metadata()?.name}</h1>
+          <EditProjectDialog />
+        </div>
+        <Show when={project_metadata()?.description}>
+          {(description) => (
+            <>
+              <h2 class="font-bold">Description</h2>
+              <p>{description()}</p>
+            </>
+          )}
+        </Show>
         <Show when={!lists.loading} fallback={<div>Loading lists...</div>}>
           <h2 class="font-bold">Lists</h2>
           <ul class="list-disc list-inside space-y-1">
@@ -319,7 +327,6 @@ export function ProjectPage() {
             </For>
           </ul>
         </Show>
-        <EditProjectDialog />
       </Suspense>
       <CardPreview />
     </main>
