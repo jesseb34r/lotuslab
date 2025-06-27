@@ -17,7 +17,9 @@ const Root: Component<ComponentProps<"table">> = (props) => {
 
 const Header: Component<ComponentProps<"thead">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
-  return <thead class={cn("[&_tr]:border-b", local.class)} {...others} />;
+  return (
+    <thead class={cn("[&_tr]:hover:bg-inherit", local.class)} {...others} />
+  );
 };
 
 const Body: Component<ComponentProps<"tbody">> = (props) => {
@@ -42,7 +44,7 @@ const Row: Component<ComponentProps<"tr">> = (props) => {
   return (
     <tr
       class={cn(
-        "border-b hover:bg-neutral-2 data-[state=selected]:bg-neutral-3",
+        "border-b border-neutral-6 hover:bg-neutral-2 data-[state=selected]:bg-neutral-3",
         local.class,
       )}
       {...others}
