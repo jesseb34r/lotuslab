@@ -2,7 +2,6 @@ import { createAsync, query, useNavigate } from "@solidjs/router";
 import { For, Show, Suspense, createResource, createSignal } from "solid-js";
 
 import { Select } from "@kobalte/core/select";
-
 import {
   type ColumnDef,
   createSolidTable,
@@ -21,25 +20,87 @@ import {
   project_format_options,
 } from "../lib/db.ts";
 
-export function HomePage() {
-  const projects = query(async () => {
-    const db = await MoxcelDatabase.db();
-    return db.get_project_list();
-  }, "get_project_list");
+const get_project_list = query(async () => {
+  const db = await MoxcelDatabase.db();
+  return db.get_project_list();
+}, "get_project_list");
 
+const columns: ColumnDef<ProjectMetadata>[] = [
+  {
+    accessorKey: "name",
+    header: "Name",
+  },
+  {
+    accessorKey: "format",
+    header: "Format",
+  },
+];
+
+const ProjectTable = <TData, TValue>(props: {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+}) => {
+  const table = createSolidTable({
+    get data() {
+      return props.data;
+    },
+    columns: props.columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <div class="rounded-md border">
+      <Table>
+        <Table.Header>
+          <For each={table.getHeaderGroups()}>
+            {(header_group) => (
+              <Table.Row>
+                <For each={header_group.headers}>
+                  {(header) => (
+                    <Table.Head colSpan={header.colSpan}>
+                      <Show when={!header.isPlaceholder}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </Show>
+                    </Table.Head>
+                  )}
+                </For>
+              </Table.Row>
+            )}
+          </For>
+        </Table.Header>
+        <Table.Body>
+          <For each={table.getRowModel().rows}>
+            {(row) => (
+              <Table.Row data-state={row.getIsSelected() && "selected"}>
+                <For each={row.getVisibleCells()}>
+                  {(cell) => (
+                    <Table.Cell>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </Table.Cell>
+                  )}
+                </For>
+              </Table.Row>
+            )}
+          </For>
+        </Table.Body>
+      </Table>
+    </div>
+  );
+};
+
+export function HomePage() {
   const [new_project_dialog_open, set_new_project_dialog_open] =
     createSignal(false);
 
+  const projects = createAsync(() => get_project_list());
+
   const navigate = useNavigate();
-
-  async function handle_delete_project(id: number) {
-    const db = await MoxcelDatabase.db();
-    if (id === active_project_id()) {
-      set_active_project_id(undefined);
-    }
-
-    await db.delete_project(id);
-  }
 
   const NewProjectDialog = () => {
     const [project_name, set_project_name] = createSignal("");
@@ -112,90 +173,6 @@ export function HomePage() {
     );
   };
 
-  const ProjectTable = () => {
-    // const projects = createAsync(async () => {
-    //   const db = await MoxcelDatabase.db();
-    //   return db.get_project_list();
-    // });
-
-    type ProjectColumns = Pick<ProjectMetadata, "name" | "format">;
-
-    const columns: ColumnDef<ProjectColumns>[] = [
-      {
-        accessorKey: "name",
-        header: "Name",
-      },
-      {
-        accessorKey: "format",
-        header: "Format",
-      },
-    ];
-
-    const table = createSolidTable({
-      get data() {
-        return projects()!;
-      },
-      get columns() {
-        return columns;
-      },
-      getCoreRowModel: getCoreRowModel(),
-    });
-
-    return (
-      <div class="rounded-md border">
-        <Table>
-          <Table.Header>
-            <For each={table.getHeaderGroups()}>
-              {(header_group) => (
-                <Table.Row>
-                  <For each={header_group.headers}>
-                    {(header) => (
-                      <Table.Head colSpan={header.colSpan}>
-                        <Show when={!header.isPlaceholder}>
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                        </Show>
-                      </Table.Head>
-                    )}
-                  </For>
-                </Table.Row>
-              )}
-            </For>
-          </Table.Header>
-          <Table.Body>
-            <Show
-              when={table.getRowModel().rows?.length}
-              fallback={
-                <Table.Row>
-                  <Table.Cell colSpan={columns.length}>No results.</Table.Cell>
-                </Table.Row>
-              }
-            >
-              <For each={table.getRowModel().rows}>
-                {(row) => (
-                  <Table.Row data-state={row.getIsSelected() && "selected"}>
-                    <For each={row.getVisibleCells()}>
-                      {(cell) => (
-                        <Table.Cell>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </Table.Cell>
-                      )}
-                    </For>
-                  </Table.Row>
-                )}
-              </For>
-            </Show>
-          </Table.Body>
-        </Table>
-      </div>
-    );
-  };
-
   return (
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
       <div class="flex flex-col gap-2">
@@ -216,7 +193,7 @@ export function HomePage() {
         <hr class="text-gray-dim" />
 
         {/* Projects */}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        {/* <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           <Suspense>
             <For each={projects}>
               {(project) => (
@@ -241,7 +218,12 @@ export function HomePage() {
               )}
             </For>
           </Suspense>
-        </div>
+        </div> */}
+        <Show when={projects()}>
+          {(safe_projects) => (
+            <ProjectTable data={safe_projects()} columns={columns} />
+          )}
+        </Show>
       </div>
     </main>
   );
