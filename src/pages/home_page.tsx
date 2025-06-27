@@ -36,9 +36,9 @@ const columns: ColumnDef<ProjectMetadata>[] = [
   },
 ];
 
-const ProjectTable = <TData, TValue>(props: {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+const ProjectTable = (props: {
+  columns: ColumnDef<ProjectMetadata>[];
+  data: ProjectMetadata[];
 }) => {
   const table = createSolidTable({
     get data() {
@@ -47,6 +47,8 @@ const ProjectTable = <TData, TValue>(props: {
     columns: props.columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const navigate = useNavigate();
 
   return (
     <div class="rounded-md border">
@@ -74,7 +76,13 @@ const ProjectTable = <TData, TValue>(props: {
         <Table.Body>
           <For each={table.getRowModel().rows}>
             {(row) => (
-              <Table.Row data-state={row.getIsSelected() && "selected"}>
+              <Table.Row
+                onMouseDown={() => {
+                  set_active_project_id(row.original.id);
+                  navigate("/project");
+                }}
+                data-state={row.getIsSelected() && "selected"}
+              >
                 <For each={row.getVisibleCells()}>
                   {(cell) => (
                     <Table.Cell>
