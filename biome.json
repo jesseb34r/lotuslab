@@ -1,15 +1,42 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
   "files": {
-    "ignore": [".bun", "dist", "node_modules", "test-files", "src-tauri"]
+    "includes": [
+      "**",
+      "!.bun",
+      "!dist",
+      "!node_modules",
+      "!test-files",
+      "!src-tauri"
+    ]
   },
-  "organizeImports": { "enabled": true },
+
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on",
+        "useSortedAttributes": "on",
+        "useSortedKeys": "on",
+        "useSortedProperties": "on"
+      }
+    },
+    "enabled": true
+  },
+  "json": {
+    "assist": { "enabled": false }
+  },
+
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space"
+  },
+
   "linter": {
     "rules": {
       "a11y": {
-        "useKeyWithMouseEvents": "off",
+        "noSvgWithoutTitle": "off",
         "useKeyWithClickEvents": "off",
-        "noSvgWithoutTitle": "off"
+        "useKeyWithMouseEvents": "off"
       },
       "correctness": {
         "noInvalidPositionAtImportRule": "off"
@@ -19,9 +46,5 @@
         "noUselessElse": "off"
       }
     }
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space"
   }
 }
