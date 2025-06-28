@@ -17,7 +17,13 @@ export function ProjectPage() {
   const project_metadata = createAsync(() =>
     get_project_by_id(active_project_id()!),
   );
-  const lists = createAsync(() => get_lists_by_project(project_metadata()!.id));
+  const lists = createAsync(() => {
+    const local_metadata = project_metadata();
+    if (!local_metadata || !local_metadata.id) {
+      return Promise.resolve([]);
+    }
+    return get_lists_by_project(local_metadata.id);
+  });
 
   const [preview_show, set_preview_show] = createSignal(false);
   const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
