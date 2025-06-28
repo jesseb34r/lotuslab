@@ -1,14 +1,17 @@
 import type { ScryfallCard } from "@scryfall/api-types";
 import { createAsync, useAction } from "@solidjs/router";
-import { createSignal, For, Show, Suspense } from "solid-js";
+import { type Component, createSignal, For, Show, Suspense } from "solid-js";
 import { Portal } from "solid-js/web";
-import { IconPencil } from "../components/icons.tsx";
+
+import { IconPencil, IconPlus } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
 import { TextField } from "../components/ui/text-field";
 import { active_project_id } from "../index.tsx";
 import {
   action_update_project_metadata,
+  get_card_by_id,
+  get_cards_in_list,
   get_lists_by_project,
   get_project_by_id,
 } from "../lib/db";
@@ -160,14 +163,34 @@ export function ProjectPage() {
             </>
           )}
         </Show>
-        <h2 class="font-bold">Lists</h2>
+        <div class="flex mb-margin mt-gutter justify-between items-baseline">
+          <h2 class="font-bold">Main</h2>
+          <Button size="icon" variant="success">
+            <IconPlus />
+          </Button>
+        </div>
         <ul class="list-disc list-inside space-y-1">
-          <For each={lists()}>
-            {(list_metadata) => <li>{list_metadata.name}</li>}
-          </For>
+          <Show when={lists()}>
+            {(all_lists) => {
+              const main_list = all_lists().find(
+                (list) => list.name === "main",
+              );
+              const cards = createAsync(() => get_cards_in_list(main_list!.id));
+              return (
+                <For each={cards()}>
+                  {(card) => <Card card_id={card.card_id} />}
+                </For>
+              );
+            }}
+          </Show>
         </ul>
       </Suspense>
       <CardPreview />
     </main>
   );
 }
+
+const Card: Component<{ card_id: string }> = (props) => {
+  const card_details = createAsync(() => get_card_by_id(props.card_id));
+  return <li>{card_details()?.name}</li>;
+};

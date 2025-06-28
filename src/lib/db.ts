@@ -67,6 +67,16 @@ export const get_lists_by_project = query(async (project_id: number) => {
   return await db.get_lists_by_project(project_id);
 }, "get_lists_by_project");
 
+export const get_cards_in_list = query(async (list_id: number) => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.get_cards_in_list(list_id);
+}, "get_cards_in_list");
+
+export const get_card_by_id = query(async (card_id: string) => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.get_card_by_id(card_id);
+}, "get_card_by_id");
+
 // private db class with all the actual db functions on it
 class MoxcelDatabase {
   private static instance: MoxcelDatabase | null = null;
