@@ -1,13 +1,12 @@
-import { createAsync, query, useNavigate } from "@solidjs/router";
-import { For, Show, createSignal } from "solid-js";
-
 import { Select } from "@kobalte/core/select";
+import { createAsync, useAction, useNavigate } from "@solidjs/router";
 import {
   type ColumnDef,
   createSolidTable,
   flexRender,
   getCoreRowModel,
 } from "@tanstack/solid-table";
+import { createSignal, For, Show } from "solid-js";
 
 import { IconPlus } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";
@@ -16,15 +15,11 @@ import { Table } from "../components/ui/table.tsx";
 import { TextField } from "../components/ui/text-field";
 import { set_active_project_id } from "../index.tsx";
 import {
-  MoxcelDatabase,
+  action_create_project,
+  get_projects,
   type ProjectMetadata,
   project_format_options,
 } from "../lib/db.ts";
-
-const get_project_list = query(async () => {
-  const db = await MoxcelDatabase.db();
-  return db.get_project_list();
-}, "get_project_list");
 
 const columns: ColumnDef<ProjectMetadata>[] = [
   {
@@ -38,7 +33,8 @@ const columns: ColumnDef<ProjectMetadata>[] = [
 ];
 
 export function HomePage() {
-  const projects = createAsync(() => get_project_list());
+  // Now projects is a resource function that calls the db query
+  const projects = createAsync(async () => get_projects());
 
   return (
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
@@ -51,7 +47,7 @@ export function HomePage() {
       {/* Projects */}
       <Show when={projects()}>
         {(safe_projects) => (
-          <ProjectTable data={safe_projects()} columns={columns} />
+          <ProjectTable columns={columns} data={safe_projects()} />
         )}
       </Show>
     </main>
@@ -65,24 +61,21 @@ const NewProjectDialog = () => {
     createSignal<ProjectMetadata["format"]>("list");
 
   const navigate = useNavigate();
+  const create_project = useAction(action_create_project);
 
   const handle_new_project = async () => {
-    const db = await MoxcelDatabase.db();
-    const project_id = await db.create_project(
-      project_name(),
-      project_format(),
-    );
+    const project_id = await create_project(project_name());
 
     set_active_project_id(project_id);
     navigate("/project", { replace: true });
   };
 
   return (
-    <Dialog open={dialog_open()} onOpenChange={set_dialog_open}>
+    <Dialog onOpenChange={set_dialog_open} open={dialog_open()}>
       <Button
         onMouseDown={() => set_dialog_open(true)}
-        variant="success"
         size="icon"
+        variant="success"
       >
         <IconPlus />
       </Button>
@@ -91,23 +84,23 @@ const NewProjectDialog = () => {
         <Dialog.Header>
           <Dialog.Title>New Project</Dialog.Title>
         </Dialog.Header>
-        <TextField value={project_name()} onChange={set_project_name}>
+        <TextField onChange={set_project_name} value={project_name()}>
           <TextField.Label>Name</TextField.Label>
           <TextField.Input />
         </TextField>
         <Select
-          value={project_format()}
-          onChange={set_project_format}
-          options={[...project_format_options]}
           itemComponent={(props) => (
             <Select.Item
-              item={props.item}
               class="px-4 py-2 cursor-pointer data-highlighted:bg-neutral-5"
+              item={props.item}
             >
               <Select.ItemLabel>{props.item.rawValue}</Select.ItemLabel>
               <Select.ItemIndicator>⋅</Select.ItemIndicator>
             </Select.Item>
           )}
+          onChange={set_project_format}
+          options={[...project_format_options]}
+          value={project_format()}
         >
           <Select.Trigger class="bg-neutral-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
             <Select.Value<string>>
@@ -133,10 +126,10 @@ const ProjectTable = (props: {
   data: ProjectMetadata[];
 }) => {
   const table = createSolidTable({
+    columns: props.columns,
     get data() {
       return props.data;
     },
-    columns: props.columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -168,11 +161,11 @@ const ProjectTable = (props: {
         <For each={table.getRowModel().rows}>
           {(row) => (
             <Table.Row
+              data-state={row.getIsSelected() && "selected"}
               onMouseDown={() => {
                 set_active_project_id(row.original.id);
                 navigate("/project");
               }}
-              data-state={row.getIsSelected() && "selected"}
             >
               <For each={row.getVisibleCells()}>
                 {(cell) => (

@@ -2,38 +2,22 @@ import { Button } from "@kobalte/core/button";
 import { Dialog } from "@kobalte/core/dialog";
 import { TextField } from "@kobalte/core/text-field";
 import type { ScryfallCard } from "@scryfall/api-types";
-import {
-  type Component,
-  For,
-  Show,
-  Suspense,
-  createResource,
-  createSignal,
-} from "solid-js";
+import { createAsync, useAction } from "@solidjs/router";
+import { createSignal, For, Show, Suspense } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { active_project_id } from "../index.tsx";
-import { MoxcelDatabase } from "../lib/db";
-import type { Card } from "../lib/project.ts";
+import {
+  action_update_project_metadata,
+  get_lists_by_project,
+  get_project_by_id,
+} from "../lib/db";
 
 export function ProjectPage() {
-  const [project_metadata, { refetch: refetch_project_metadata }] =
-    createResource(async () => {
-      const db = await MoxcelDatabase.db();
-      return db.get_project_by_id(active_project_id()!);
-    });
-
-  const [lists, { refetch: refetch_lists }] = createResource(
-    () => project_metadata()?.id,
-    async (id) => {
-      if (!id) {
-        return [];
-      } else {
-        const db = await MoxcelDatabase.db();
-        return db.get_lists_by_project(id);
-      }
-    },
+  const project_metadata = createAsync(() =>
+    get_project_by_id(active_project_id()!),
   );
+  const lists = createAsync(() => get_lists_by_project(project_metadata()!.id));
 
   const [preview_show, set_preview_show] = createSignal(false);
   const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
@@ -56,152 +40,6 @@ export function ProjectPage() {
     set_preview_img_uri(card.image_uris!.normal);
   }
 
-  const TableView: Component<{ list: Card[] }> = (props) => (
-    <div class="w-full max-w-5xl">
-      <div class="border overflow-hidden">
-        <div class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b bg-neutral-1">
-          {/* Header */}
-          <div class="font-medium text-neutral-12 p-3">#</div>
-          <div class="font-medium text-neutral-12 p-3">Name</div>
-          <div class="font-medium text-neutral-12 p-3">Mana Cost</div>
-          <div class="font-medium text-neutral-12 p-3">Tags</div>
-        </div>
-
-        {/* Card list */}
-        <For each={props.list}>
-          {(card) => (
-            <div
-              class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b last:border-b-0 hover:bg-neutral-2 transition-colors"
-              onMouseMove={(e) =>
-                handle_set_preview(e, card.card as ScryfallCard.AnySingleFaced)
-              }
-              onMouseOver={() => set_preview_show(true)}
-              onMouseLeave={() => set_preview_show(false)}
-              onFocus={() => {}}
-            >
-              {/* Quantity column */}
-              <div class="p-3 flex items-center cursor-pointer">
-                {card.quantity}
-              </div>
-
-              {/* Name column */}
-              <div class="p-3 flex items-center cursor-pointer">
-                {card.card.name}
-              </div>
-
-              {/* Mana Cost column */}
-              <div class="p-3 flex items-center font-mono">
-                {card.card.mana_cost || ""}
-              </div>
-
-              {/* Tags column (stub for future) */}
-              <div class="p-3 flex items-center text-neutral-9 italic">
-                {/* Empty for now - will hold tags in the future */}
-              </div>
-            </div>
-          )}
-        </For>
-      </div>
-
-      {/* Total count */}
-      <div class="mt-4 text-sm text-neutral-11">
-        Total Cards: {props.list.reduce((sum, card) => sum + card.quantity, 0)}
-      </div>
-    </div>
-  );
-
-  const DeckView: Component<{ list: Card[] }> = (props) => {
-    const type_groups: Record<string, Card[]> = {};
-
-    const get_type = (type_line: string): string => {
-      const before_subtypes = type_line.split("—")[0].trim();
-      const words = before_subtypes.split(" ");
-      return words[words.length - 1];
-    };
-
-    // Group cards by their type line
-    for (const card of props.list) {
-      if (card.card.layout !== "normal") {
-        if (!type_groups.misc) {
-          type_groups.misc = [];
-        }
-        type_groups.misc.push(card);
-      } else {
-        const type = get_type(card.card.type_line);
-        if (!type_groups[type]) {
-          type_groups[type] = [];
-        }
-        type_groups[type].push(card);
-      }
-    }
-
-    // Sort type groups by priority (creatures, instants, sorceries, etc.)
-    const type_priority = [
-      "Creature",
-      "Instant",
-      "Sorcery",
-      "Enchantment",
-      "Artifact",
-      "Planeswalker",
-      "Battle",
-      "Land",
-    ];
-    const sorted_type_keys = Object.keys(type_groups).sort((a, b) => {
-      const a_priority = type_priority.findIndex((type) => a.includes(type));
-      const b_priority = type_priority.findIndex((type) => b.includes(type));
-
-      if (a_priority === -1 && b_priority === -1) return a.localeCompare(b);
-      if (a_priority === -1) return 1;
-      if (b_priority === -1) return -1;
-
-      return a_priority - b_priority;
-    });
-
-    return (
-      <div class="w-full max-w-3xl">
-        <For each={sorted_type_keys}>
-          {(type_key) => (
-            <div class="mb-6">
-              <h3 class="text-lg font-medium mb-3 text-neutral-12">
-                {type_key} (
-                {type_groups[type_key].reduce(
-                  (sum, card) => sum + card.quantity,
-                  0,
-                )}
-                )
-              </h3>
-              <div class="space-y-1">
-                <For each={type_groups[type_key]}>
-                  {(card) => (
-                    <div
-                      class="flex items-center gap-3 p-2 hover:bg-neutral-2 rounded transition-colors"
-                      onMouseMove={(e) =>
-                        handle_set_preview(
-                          e,
-                          card.card as ScryfallCard.AnySingleFaced,
-                        )
-                      }
-                      onMouseOver={() => set_preview_show(true)}
-                      onMouseLeave={() => set_preview_show(false)}
-                    >
-                      <span class="w-8 text-center text-sm">
-                        {card.quantity}
-                      </span>
-                      <span class="flex-1">{card.card.name}</span>
-                      <span class="font-mono text-sm">
-                        {card.card.mana_cost || ""}
-                      </span>
-                    </div>
-                  )}
-                </For>
-              </div>
-            </div>
-          )}
-        </For>
-      </div>
-    );
-  };
-
   const EditProjectDialog = () => {
     const [project_settings_dialog_open, set_project_settings_dialog_open] =
       createSignal(false);
@@ -209,9 +47,10 @@ export function ProjectPage() {
     const [new_project_description, set_new_project_description] =
       createSignal("");
 
+    const update_project = useAction(action_update_project_metadata);
+
     const handle_edit_project = async () => {
-      const db = await MoxcelDatabase.db();
-      await db.update_project_metadata(
+      await update_project(
         active_project_id()!,
         new_project_name().trim(),
         new_project_description().trim(),
@@ -219,19 +58,17 @@ export function ProjectPage() {
 
       set_project_settings_dialog_open(false);
       set_new_project_name("");
-
-      refetch_project_metadata();
     };
 
     return (
       <Dialog
-        open={project_settings_dialog_open()}
         onOpenChange={set_project_settings_dialog_open}
+        open={project_settings_dialog_open()}
         // TODO: figure out why it submits an empty string when you don't edit the name.
       >
         <Dialog.Trigger
-          onMouseDown={() => set_project_settings_dialog_open(true)}
           class="px-2 py-1 rounded cursor-pointer bg-success-3 hover:bg-success-4"
+          onMouseDown={() => set_project_settings_dialog_open(true)}
         >
           Edit
         </Dialog.Trigger>
@@ -239,28 +76,28 @@ export function ProjectPage() {
           <Dialog.Content class="flex flex-col items-center justify-center gap-4 fixed top-20 left-[50%] translate-x-[-50%] px-10 py-8 rounded bg-neutral-3 text-neutral-12">
             <Dialog.Title class="text-2xl mb-4">Edit Project</Dialog.Title>
             <form
+              class="flex flex-col items-stretch justify-center gap-4"
               onSubmit={(e) => {
                 e.preventDefault();
                 handle_edit_project();
               }}
-              class="flex flex-col items-stretch justify-center gap-4"
             >
               <TextField
-                value={new_project_name()}
-                onChange={set_new_project_name}
                 class="flex flex-col"
+                onChange={set_new_project_name}
+                value={new_project_name()}
               >
                 <TextField.Label>Name</TextField.Label>
                 <TextField.Input
-                  class="bg-neutral-7 px-1 rounded"
                   autocorrect="off"
+                  class="bg-neutral-7 px-1 rounded"
                   value={project_metadata()?.name ?? ""}
                 />
               </TextField>
               <TextField
-                value={new_project_description()}
-                onChange={set_new_project_description}
                 class="flex flex-col"
+                onChange={set_new_project_description}
+                value={new_project_description()}
               >
                 <TextField.Label>Description</TextField.Label>
                 <TextField.TextArea
@@ -269,13 +106,13 @@ export function ProjectPage() {
                 />
               </TextField>
               <Button
-                onMouseDown={handle_edit_project}
+                class="px-2 py-1 rounded self-end cursor-pointer bg-success-4 hover:bg-success-5"
                 onKeyDown={(e: KeyboardEvent) => {
                   if (e.key === "Enter" || e.key === " ") {
                     handle_edit_project();
                   }
                 }}
-                class="px-2 py-1 rounded self-end cursor-pointer bg-success-4 hover:bg-success-5"
+                onMouseDown={handle_edit_project}
               >
                 Submit
               </Button>
@@ -290,15 +127,15 @@ export function ProjectPage() {
     <Show when={preview_show()}>
       <Portal>
         <img
-          ref={set_preview_ref}
+          alt="card preview"
           class="fixed aspect-[5/7] h-80 rounded-xl"
+          ref={set_preview_ref}
+          src={preview_img_uri()}
           style={{
             left: `${preview_offset()!.x}px`,
-            top: `${preview_offset()!.y}px`,
             "pointer-events": "none",
+            top: `${preview_offset()!.y}px`,
           }}
-          src={preview_img_uri()}
-          alt="card preview"
         />
       </Portal>
     </Show>
@@ -319,14 +156,12 @@ export function ProjectPage() {
             </>
           )}
         </Show>
-        <Show when={!lists.loading} fallback={<div>Loading lists...</div>}>
-          <h2 class="font-bold">Lists</h2>
-          <ul class="list-disc list-inside space-y-1">
-            <For each={lists()}>
-              {(list_metadata) => <li>{list_metadata.name}</li>}
-            </For>
-          </ul>
-        </Show>
+        <h2 class="font-bold">Lists</h2>
+        <ul class="list-disc list-inside space-y-1">
+          <For each={lists()}>
+            {(list_metadata) => <li>{list_metadata.name}</li>}
+          </For>
+        </ul>
       </Suspense>
       <CardPreview />
     </main>

@@ -1,6 +1,6 @@
 /* @refresh reload */
 import { Route, Router } from "@solidjs/router";
-import { type ParentComponent, createSignal } from "solid-js";
+import { createSignal, type ParentComponent } from "solid-js";
 import { render } from "solid-js/web";
 
 import "./styles/index.css";
@@ -27,12 +27,12 @@ export const [active_project_id, set_active_project_id] =
 render(
   () => (
     <Router root={AppLayout}>
-      <Route path="/" component={HomePage} />
-      <Route path="/project" component={ProjectPage} />
-      <Route path="/search" component={SearchPage} />
-      <Route path="/settings" component={SettingsPage} />
-      <Route path="/theme_preview" component={ThemePreviewPage} />
-      <Route path="*404" component={NotFound} />
+      <Route component={HomePage} path="/" />
+      <Route component={ProjectPage} path="/project" />
+      <Route component={SearchPage} path="/search" />
+      <Route component={SettingsPage} path="/settings" />
+      <Route component={ThemePreviewPage} path="/theme_preview" />
+      <Route component={NotFound} path="*404" />
     </Router>
   ),
   document.getElementById("root") as HTMLElement,

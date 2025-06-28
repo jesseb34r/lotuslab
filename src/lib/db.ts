@@ -1,7 +1,74 @@
-import { query } from "@solidjs/router";
+import { action, json, query, reload } from "@solidjs/router";
 import Database from "@tauri-apps/plugin-sql";
 
-export class MoxcelDatabase {
+// actions and queries
+
+export const action_create_project = action(async (name: string) => {
+  const db = await MoxcelDatabase.get_instance();
+  const new_id = await db.create_project(name);
+  return json(new_id, { revalidate: get_projects.key });
+});
+
+export const action_update_project_metadata = action(
+  async (id: number, name?: string, description?: string) => {
+    const db = await MoxcelDatabase.get_instance();
+    await db.update_project_metadata(id, name, description);
+    return reload({ revalidate: get_project_by_id.keyFor(id) });
+  },
+);
+
+export const action_delete_project = action(
+  async (id: number): Promise<void> => {
+    const db = await MoxcelDatabase.get_instance();
+    return await db.delete_project(id);
+  },
+  "delete_project",
+);
+
+export const get_projects = query(async () => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.get_projects();
+}, "get_projects");
+
+export const get_project_by_id = query(async (id: number) => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.get_project_by_id(id);
+}, "get_project_by_id");
+
+export const action_create_list = action(
+  async (project_id: number, name: string, description?: string) => {
+    const db = await MoxcelDatabase.get_instance();
+    const new_id = await db.create_list(project_id, name, description);
+    // Optionally revalidate project or list queries
+    return json(new_id, {
+      revalidate: get_lists_by_project.keyFor(project_id),
+    });
+  },
+);
+
+export const action_update_list_metadata = action(
+  async (id: number, name?: string, description?: string) => {
+    const db = await MoxcelDatabase.get_instance();
+    await db.update_list_metadata(id, name, description);
+    return reload({ revalidate: get_lists_by_project.keyFor(id) });
+  },
+);
+
+export const action_delete_list = action(
+  async (id: number, project_id: number) => {
+    const db = await MoxcelDatabase.get_instance();
+    await db.delete_list(id);
+    return reload({ revalidate: get_lists_by_project.keyFor(project_id) });
+  },
+);
+
+export const get_lists_by_project = query(async (project_id: number) => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.get_lists_by_project(project_id);
+}, "get_lists_by_project");
+
+// private db class with all the actual db functions on it
+class MoxcelDatabase {
   private static instance: MoxcelDatabase | null = null;
   private db: Database;
 
@@ -9,7 +76,7 @@ export class MoxcelDatabase {
     this.db = db;
   }
 
-  static async db(): Promise<MoxcelDatabase> {
+  static async get_instance(): Promise<MoxcelDatabase> {
     if (!MoxcelDatabase.instance) {
       const db = await Database.load("sqlite:data.db");
       MoxcelDatabase.instance = new MoxcelDatabase(db);
@@ -17,69 +84,25 @@ export class MoxcelDatabase {
     return MoxcelDatabase.instance;
   }
 
-  // Project CRUD methods
+  // Project Operations
 
   /**
    * Creates a new project with the given name and format.
+   * Make sure to validate that the name is unique or this will throw a db error
    *
    * @returns The index (id) of the new project.
    */
-  async create_project(
-    name: string,
-    format: ProjectMetadata["format"],
-  ): Promise<number> {
-    const result = await this.db.execute(
-      "INSERT INTO projects (name, format) VALUES (?, ?)",
-      [name, format],
-    );
-
-    if (result.lastInsertId !== undefined) {
-      switch (format) {
-        case "list":
-          await this.create_list(result.lastInsertId, "list");
-          break;
-        case "cube":
-          await this.create_list(result.lastInsertId, "main");
-          await this.create_list(result.lastInsertId, "considering");
-          break;
-        case "commander":
-          await this.create_list(result.lastInsertId, "main");
-          await this.create_list(result.lastInsertId, "commander");
-          await this.create_list(result.lastInsertId, "considering");
-          break;
-        default:
-          await this.create_list(result.lastInsertId, "main");
-          await this.create_list(result.lastInsertId, "side");
-          break;
-      }
-
-      return result.lastInsertId;
-    } else {
-      throw new Error("Failed to get last insert ID");
+  async create_project(name: string): Promise<number> {
+    if (name.trim().length === 0) {
+      throw new Error("Project name must be a non-empty string.");
     }
-  }
 
-  /**
-   * Retrieves the list of all projects.
-   *
-   * @returns An array of ProjectMetadata objects for all projects.
-   */
-  get_project_list = query(
-    () => this.db.select<ProjectMetadata[]>("SELECT * FROM projects"),
-    "project_list",
-  );
-
-  /**
-   * Retrieves a project by its ID.
-   *
-   * @returns The ProjectMetadata object if found, or null if not found.
-   */
-  async get_project_by_id(id: number): Promise<ProjectMetadata | null> {
-    const results = await this.db.select<ProjectMetadata[]>(
-      "SELECT * FROM projects WHERE id = ?",
-      [id],
+    // Name should be validated as unique before passing to this function
+    const result = await this.db.execute(
+      "INSERT INTO projects (name) VALUES (?)",
+      [name],
     );
-    return results.length > 0 ? results[0] : null;
+    return result.lastInsertId!;
   }
 
   /**
@@ -113,6 +136,28 @@ export class MoxcelDatabase {
    */
   async delete_project(id: number): Promise<void> {
     await this.db.execute("DELETE FROM projects WHERE id = ?", [id]);
+  }
+
+  /**
+   * Retrieves the list of all projects.
+   *
+   * @returns An array of ProjectMetadata objects for all projects.
+   */
+  async get_projects() {
+    return await this.db.select<ProjectMetadata[]>("SELECT * FROM projects");
+  }
+
+  /**
+   * Retrieves a project by its ID.
+   *
+   * @returns The ProjectMetadata object if found, or null if not found.
+   */
+  async get_project_by_id(id: number): Promise<ProjectMetadata | null> {
+    const results = await this.db.select<ProjectMetadata[]>(
+      "SELECT * FROM projects WHERE id = ?",
+      [id],
+    );
+    return results.length > 0 ? results[0] : null;
   }
 
   // List CRUD methods
