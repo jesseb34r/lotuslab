@@ -1,11 +1,11 @@
-import { Button } from "@kobalte/core/button";
-import { Dialog } from "@kobalte/core/dialog";
-import { TextField } from "@kobalte/core/text-field";
 import type { ScryfallCard } from "@scryfall/api-types";
 import { createAsync, useAction } from "@solidjs/router";
 import { createSignal, For, Show, Suspense } from "solid-js";
 import { Portal } from "solid-js/web";
-
+import { IconPencil } from "../components/icons.tsx";
+import { Button } from "../components/ui/button";
+import { Dialog } from "../components/ui/dialog";
+import { TextField } from "../components/ui/text-field";
 import { active_project_id } from "../index.tsx";
 import {
   action_update_project_metadata,
@@ -55,76 +55,74 @@ export function ProjectPage() {
 
     const update_project = useAction(action_update_project_metadata);
 
+    // When dialog opens, default the signals to current values
+    function handle_open() {
+      set_new_project_name(project_metadata()?.name ?? "");
+      set_new_project_description(project_metadata()?.description ?? "");
+      set_project_settings_dialog_open(true);
+    }
+
     const handle_edit_project = async () => {
       await update_project(
         active_project_id()!,
         new_project_name().trim(),
         new_project_description().trim(),
       );
-
       set_project_settings_dialog_open(false);
       set_new_project_name("");
+      set_new_project_description("");
     };
 
     return (
       <Dialog
         onOpenChange={set_project_settings_dialog_open}
         open={project_settings_dialog_open()}
-        // TODO: figure out why it submits an empty string when you don't edit the name.
       >
-        <Dialog.Trigger
-          class="px-2 py-1 rounded cursor-pointer bg-success-3 hover:bg-success-4"
-          onMouseDown={() => set_project_settings_dialog_open(true)}
+        <Button onMouseDown={handle_open} size="icon" variant="success">
+          <IconPencil />
+        </Button>
+        <Dialog.Content
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handle_edit_project();
+            }
+          }}
         >
-          Edit
-        </Dialog.Trigger>
-        <Dialog.Portal>
-          <Dialog.Content class="flex flex-col items-center justify-center gap-4 fixed top-20 left-[50%] translate-x-[-50%] px-10 py-8 rounded bg-neutral-3 text-neutral-12">
-            <Dialog.Title class="text-2xl mb-4">Edit Project</Dialog.Title>
-            <form
-              class="flex flex-col items-stretch justify-center gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handle_edit_project();
-              }}
+          <Dialog.CloseButtonX
+            onMouseDown={() => set_project_settings_dialog_open(false)}
+          />
+          <Dialog.Header>
+            <Dialog.Title>Edit Project</Dialog.Title>
+          </Dialog.Header>
+          <div class="flex flex-col items-stretch justify-center gap-4">
+            <TextField
+              onChange={set_new_project_name}
+              value={new_project_name()}
             >
-              <TextField
-                class="flex flex-col"
-                onChange={set_new_project_name}
-                value={new_project_name()}
-              >
-                <TextField.Label>Name</TextField.Label>
-                <TextField.Input
-                  autocorrect="off"
-                  class="bg-neutral-7 px-1 rounded"
-                  value={project_metadata()?.name ?? ""}
-                />
-              </TextField>
-              <TextField
-                class="flex flex-col"
-                onChange={set_new_project_description}
-                value={new_project_description()}
-              >
-                <TextField.Label>Description</TextField.Label>
-                <TextField.TextArea
-                  class="bg-neutral-7 px-1 rounded resize-none"
-                  value={project_metadata()?.description ?? ""}
-                />
-              </TextField>
-              <Button
-                class="px-2 py-1 rounded self-end cursor-pointer bg-success-4 hover:bg-success-5"
-                onKeyDown={(e: KeyboardEvent) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    handle_edit_project();
-                  }
-                }}
-                onMouseDown={handle_edit_project}
-              >
-                Submit
-              </Button>
-            </form>
-          </Dialog.Content>
-        </Dialog.Portal>
+              <TextField.Label>Name</TextField.Label>
+              <TextField.Input />
+            </TextField>
+            <TextField
+              onChange={set_new_project_description}
+              value={new_project_description()}
+            >
+              <TextField.Label>Description</TextField.Label>
+              <TextField.TextArea />
+            </TextField>
+            <Button
+              onKeyDown={(e: KeyboardEvent) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  handle_edit_project();
+                }
+              }}
+              onMouseDown={handle_edit_project}
+              variant="success"
+            >
+              Submit
+            </Button>
+          </div>
+        </Dialog.Content>
       </Dialog>
     );
   };
@@ -149,9 +147,9 @@ export function ProjectPage() {
 
   return (
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
-      <Suspense fallback="resource not loaded">
-        <div class="flex justify-between mb-margin">
-          <h1 class="text-4xl">{project_metadata()?.name}</h1>
+      <Suspense>
+        <div class="flex mb-margin justify-between items-baseline">
+          <h1 class="text-4xl leading-tight">{project_metadata()?.name}</h1>
           <EditProjectDialog />
         </div>
         <Show when={project_metadata()?.description}>

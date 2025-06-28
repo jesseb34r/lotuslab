@@ -1,4 +1,4 @@
-import { For, createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
 
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
@@ -42,19 +42,19 @@ export function ThemePreviewPage() {
       <div class="bg-neutral-2 p-4 rounded flex flex-col items-center">
         <h2 class="mb-2 font-semibold">Small</h2>
         <div class="flex gap-gutter justify-center">
-          <Button variant="neutral" size="sm">
+          <Button size="sm" variant="neutral">
             Neutral
           </Button>
-          <Button variant="accent" size="sm">
+          <Button size="sm" variant="accent">
             Accent
           </Button>
-          <Button variant="success" size="sm">
+          <Button size="sm" variant="success">
             Success
           </Button>
-          <Button variant="warning" size="sm">
+          <Button size="sm" variant="warning">
             Warning
           </Button>
-          <Button variant="danger" size="sm">
+          <Button size="sm" variant="danger">
             Danger
           </Button>
         </div>
@@ -68,26 +68,26 @@ export function ThemePreviewPage() {
         </div>
         <h2 class="mb-2 font-semibold">Large</h2>
         <div class="flex gap-gutter justify-center">
-          <Button variant="neutral" size="lg">
+          <Button size="lg" variant="neutral">
             Neutral
           </Button>
-          <Button variant="accent" size="lg">
+          <Button size="lg" variant="accent">
             Accent
           </Button>
-          <Button variant="success" size="lg">
+          <Button size="lg" variant="success">
             Success
           </Button>
-          <Button variant="warning" size="lg">
+          <Button size="lg" variant="warning">
             Warning
           </Button>
-          <Button variant="danger" size="lg">
+          <Button size="lg" variant="danger">
             Danger
           </Button>
         </div>
       </div>
       <h1 class="font-bold text-2xl">Dialog</h1>
       <div class="bg-neutral-2 rounded flex flex-col items-center justify-center w-lg h-md">
-        <Dialog open={dialog_open()} onOpenChange={set_dialog_open}>
+        <Dialog onOpenChange={set_dialog_open} open={dialog_open()}>
           <Button onMouseDown={() => set_dialog_open(true)}>Trigger</Button>
           <Dialog.Content>
             <Dialog.CloseButtonX onMouseDown={() => set_dialog_open(false)} />
@@ -103,9 +103,9 @@ export function ThemePreviewPage() {
                   Project name
                 </TextField.Label>
                 <TextField.Input
-                  value="Fundamentos"
                   class="col-span-3"
                   type="text"
+                  value="Fundamentos"
                 />
               </TextField>
               <TextField class="grid grid-cols-4 items-center gap-gutter">
@@ -113,22 +113,22 @@ export function ThemePreviewPage() {
                   Description
                 </TextField.Label>
                 <TextField.Input
-                  value="this is a description"
                   class="col-span-3"
                   type="text"
+                  value="this is a description"
                 />
               </TextField>
             </div>
             <Dialog.Footer>
               <Button
-                variant="danger"
                 onMouseDown={() => set_dialog_open(false)}
+                variant="danger"
               >
                 Cancel
               </Button>
               <Button
-                variant="success"
                 onMouseDown={() => set_dialog_open(false)}
+                variant="success"
               >
                 Submit
               </Button>

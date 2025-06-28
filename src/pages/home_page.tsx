@@ -57,8 +57,8 @@ export function HomePage() {
   return (
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
       {/* Header */}
-      <div class="flex justify-between mb-margin">
-        <h1 class="text-4xl">Projects</h1>
+      <div class="flex mb-margin justify-between items-baseline">
+        <h1 class="text-4xl leading-tight">Projects</h1>
         <NewProjectDialog />
       </div>
 
