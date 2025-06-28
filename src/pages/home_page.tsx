@@ -1,4 +1,3 @@
-import { Select } from "@kobalte/core/select";
 import { createAsync, useAction, useNavigate } from "@solidjs/router";
 import {
   type ColumnDef,
@@ -60,6 +59,16 @@ export function HomePage() {
       <div class="flex mb-margin justify-between items-baseline">
         <h1 class="text-4xl leading-tight">Projects</h1>
         <NewProjectDialog />
+        {/* <Button
+          onMouseDown={async () => {
+            const { sync_scryfall_cards } = await import("../lib/import_cards");
+            await sync_scryfall_cards();
+            alert("Scryfall cards synced!");
+          }}
+          variant="accent"
+        >
+          Sync Scryfall Cards
+        </Button> */}
       </div>
 
       {/* Projects */}
