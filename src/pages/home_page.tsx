@@ -8,7 +8,7 @@ import {
 } from "@tanstack/solid-table";
 import { createSignal, For, Show } from "solid-js";
 
-import { IconPlus } from "../components/icons.tsx";
+import { IconPlus, IconX } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
 import { Table } from "../components/ui/table.tsx";
@@ -16,6 +16,7 @@ import { TextField } from "../components/ui/text-field";
 import { set_active_project_id } from "../index.tsx";
 import {
   action_create_project,
+  action_delete_project,
   get_projects,
   type ProjectMetadata,
   project_format_options,
@@ -29,6 +30,24 @@ const columns: ColumnDef<ProjectMetadata>[] = [
   {
     accessorKey: "format",
     header: "Format",
+  },
+  {
+    id: "delete",
+    cell: (props) => {
+      const delete_project = useAction(action_delete_project);
+      return (
+        <Button
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            delete_project(props.row.original.id);
+          }}
+          size="icon"
+          variant="danger"
+        >
+          <IconX />
+        </Button>
+      );
+    },
   },
 ];
 

@@ -99,8 +99,8 @@ class MoxcelDatabase {
 
     // Name should be validated as unique before passing to this function
     const result = await this.db.execute(
-      "INSERT INTO projects (name) VALUES (?)",
-      [name],
+      "INSERT INTO projects (name, format) VALUES (?, ?)",
+      [name, "list"],
     );
     return result.lastInsertId!;
   }
