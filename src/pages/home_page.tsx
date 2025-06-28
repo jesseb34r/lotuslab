@@ -19,7 +19,6 @@ import {
   action_delete_project,
   get_projects,
   type ProjectMetadata,
-  project_format_options,
 } from "../lib/db.ts";
 
 const columns: ColumnDef<ProjectMetadata>[] = [
@@ -76,8 +75,6 @@ export function HomePage() {
 const NewProjectDialog = () => {
   const [dialog_open, set_dialog_open] = createSignal(false);
   const [project_name, set_project_name] = createSignal("");
-  const [project_format, set_project_format] =
-    createSignal<ProjectMetadata["format"]>("list");
 
   const navigate = useNavigate();
   const create_project = useAction(action_create_project);
@@ -98,7 +95,14 @@ const NewProjectDialog = () => {
       >
         <IconPlus />
       </Button>
-      <Dialog.Content>
+      <Dialog.Content
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handle_new_project();
+          }
+        }}
+      >
         <Dialog.CloseButtonX onMouseDown={() => set_dialog_open(false)} />
         <Dialog.Header>
           <Dialog.Title>New Project</Dialog.Title>
@@ -107,31 +111,6 @@ const NewProjectDialog = () => {
           <TextField.Label>Name</TextField.Label>
           <TextField.Input />
         </TextField>
-        <Select
-          itemComponent={(props) => (
-            <Select.Item
-              class="px-4 py-2 cursor-pointer data-highlighted:bg-neutral-5"
-              item={props.item}
-            >
-              <Select.ItemLabel>{props.item.rawValue}</Select.ItemLabel>
-              <Select.ItemIndicator>⋅</Select.ItemIndicator>
-            </Select.Item>
-          )}
-          onChange={set_project_format}
-          options={[...project_format_options]}
-          value={project_format()}
-        >
-          <Select.Trigger class="bg-neutral-7 px-2 py-1 rounded w-full cursor-pointer flex justify-between items-center">
-            <Select.Value<string>>
-              {(state) => state.selectedOption()}
-            </Select.Value>
-          </Select.Trigger>
-          <Select.Portal>
-            <Select.Content>
-              <Select.Listbox />
-            </Select.Content>
-          </Select.Portal>
-        </Select>
         <Button onMouseDown={handle_new_project} variant="success">
           Create
         </Button>

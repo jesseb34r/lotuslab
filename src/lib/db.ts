@@ -102,6 +102,7 @@ class MoxcelDatabase {
       "INSERT INTO projects (name, format) VALUES (?, ?)",
       [name, "list"],
     );
+    await this.create_list(result.lastInsertId!, "main");
     return result.lastInsertId!;
   }
 
