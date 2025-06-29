@@ -1,19 +1,20 @@
+import { Search } from "@kobalte/core/search";
 import type { ScryfallCard } from "@scryfall/api-types";
 import { createAsync, useAction } from "@solidjs/router";
 import { type Component, createSignal, For, Show, Suspense } from "solid-js";
 import { Portal } from "solid-js/web";
-
-import { IconPencil, IconPlus } from "../components/icons.tsx";
+import { IconPencil, IconPlus, IconSearch } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
 import { TextField } from "../components/ui/text-field";
-import { active_project_id } from "../index.tsx";
+import { active_project_id, useUniqueCardNames } from "../index.tsx";
 import {
   action_update_project_metadata,
   get_card_by_id,
   get_cards_in_list,
   get_lists_by_project,
   get_project_by_id,
+  search_cards_by_name,
 } from "../lib/db";
 
 export function ProjectPage() {
@@ -165,24 +166,28 @@ export function ProjectPage() {
         </Show>
         <div class="flex mb-margin mt-gutter justify-between items-baseline">
           <h2 class="font-bold">Main</h2>
-          <Button size="icon" variant="success">
-            <IconPlus />
-          </Button>
+          <AddCardSearch />
         </div>
         <ul class="list-disc list-inside space-y-1">
-          <Show when={lists()}>
-            {(all_lists) => {
-              const main_list = all_lists().find(
-                (list) => list.name === "main",
-              );
-              const cards = createAsync(() => get_cards_in_list(main_list!.id));
-              return (
-                <For each={cards()}>
-                  {(card) => <Card card_id={card.card_id} />}
-                </For>
-              );
-            }}
-          </Show>
+          <Suspense>
+            <Show when={lists()}>
+              {(all_lists) => {
+                const main_list = all_lists().find(
+                  (list) => list.name === "main",
+                );
+                const cards = createAsync(() =>
+                  get_cards_in_list(main_list!.id),
+                );
+                return (
+                  <Suspense>
+                    <For each={cards()}>
+                      {(card) => <Card card_id={card.card_id} />}
+                    </For>
+                  </Suspense>
+                );
+              }}
+            </Show>
+          </Suspense>
         </ul>
       </Suspense>
       <CardPreview />
@@ -193,4 +198,62 @@ export function ProjectPage() {
 const Card: Component<{ card_id: string }> = (props) => {
   const card_details = createAsync(() => get_card_by_id(props.card_id));
   return <li>{card_details()?.name}</li>;
+};
+
+const AddCardSearch = () => {
+  const [options, set_options] = createSignal<
+    { name: string; oracle_id: string }[]
+  >([]);
+  const [card, set_card] = createSignal<{
+    name: string;
+    oracle_id: string;
+  } | null>();
+  const unique_card_names = useUniqueCardNames();
+
+  return (
+    <Search
+      itemComponent={(props) => (
+        <Search.Item
+          class="relative flex cursor-default select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[highlighted]:bg-neutral-4 data-[disabled]:opacity-50 text-neutral-11 data-[highlighted]:text-neutral-12"
+          item={props.item}
+        >
+          <Search.ItemLabel>{props.item.rawValue.name}</Search.ItemLabel>
+        </Search.Item>
+      )}
+      onChange={(result) => set_card(result)}
+      onInputChange={(query) => {
+        if (!query) {
+          set_options([]);
+          return;
+        }
+
+        const filtered = unique_card_names!()!.filter((c) =>
+          c.name.toLowerCase().includes(query.toLowerCase()),
+        );
+
+        set_options(filtered);
+      }}
+      optionLabel={(o) => o.name}
+      options={options()}
+      placeholder="Search a card..."
+      triggerMode="input"
+    >
+      <Search.Label />
+
+      <Search.Control class="flex h-10 items-center rounded-md border px-3">
+        <Search.Indicator>
+          <Search.Icon>
+            <IconSearch />
+          </Search.Icon>
+        </Search.Indicator>
+        <Search.Input class="flex size-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-neutral-11 disabled:cursor-not-allowed disabled:opacity-50" />
+      </Search.Control>
+
+      <Search.Portal>
+        <Search.Content class="relative z-50 min-w-32 overflow-hidden rounded-md border bg-neutral-3 shadow-md">
+          <Search.Listbox class="m-0 p-1" />
+        </Search.Content>
+      </Search.Portal>
+    </Search>
+  );
 };

@@ -92,7 +92,8 @@ const NewProjectDialog = () => {
     const project_id = await create_project(project_name());
 
     set_active_project_id(project_id);
-    navigate("/project", { replace: true });
+    set_dialog_open(false);
+    // navigate("/project", { replace: true });
   };
 
   return (

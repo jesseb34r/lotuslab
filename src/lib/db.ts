@@ -17,13 +17,11 @@ export const action_update_project_metadata = action(
   },
 );
 
-export const action_delete_project = action(
-  async (id: number): Promise<void> => {
-    const db = await MoxcelDatabase.get_instance();
-    return await db.delete_project(id);
-  },
-  "delete_project",
-);
+export const action_delete_project = action(async (id: number) => {
+  const db = await MoxcelDatabase.get_instance();
+  await db.delete_project(id);
+  return reload({ revalidate: get_projects.key });
+});
 
 export const get_projects = query(async () => {
   const db = await MoxcelDatabase.get_instance();
@@ -76,6 +74,16 @@ export const get_card_by_id = query(async (card_id: string) => {
   const db = await MoxcelDatabase.get_instance();
   return await db.get_card_by_id(card_id);
 }, "get_card_by_id");
+
+export const get_all_unique_card_names = query(async () => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.get_all_unique_card_names();
+}, "get_all_unique_card_names");
+
+export const search_cards_by_name = query(async (name: string) => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.search_cards_by_name(name);
+}, "query_search_cards_by_name");
 
 // private db class with all the actual db functions on it
 class MoxcelDatabase {
@@ -265,7 +273,6 @@ class MoxcelDatabase {
   }
 
   /**
-  /**
    * Retrieves all cards belonging to a specific list.
    *
    * @returns An array of CardMetadata of every card in the list.
@@ -308,6 +315,42 @@ class MoxcelDatabase {
       [card_id],
     );
     return results.length > 0 ? results[0] : null;
+  }
+
+  /**
+   * Retrieves all unique card names and their oracle_ids.
+   *
+   * @returns An array of objects, each containing { name, oracle_id }.
+   */
+  async get_all_unique_card_names(): Promise<
+    { name: string; oracle_id: string }[]
+  > {
+    const results = await this.db.select<{ name: string; oracle_id: string }[]>(
+      "SELECT DISTINCT name, oracle_id FROM cards WHERE name IS NOT NULL AND oracle_id IS NOT NULL",
+    );
+    return results;
+  }
+
+  /**
+   * Searches cards by name, returning the id and name for each match.
+   * The search is case-insensitive and matches partial card names.
+   *
+   * @param name The (partial) name of the card to search for.
+   * @returns An array of objects with id and name of matching cards.
+   */
+  async search_cards_by_name(
+    name: string,
+  ): Promise<{ id: string; name: string }[]> {
+    if (!name || name.trim().length === 0) {
+      return [];
+    }
+    // Use % for fuzzy and partial matching
+    const queryStr = `${name.trim().toLowerCase()}%`;
+    const results = await this.db.select<{ id: string; name: string }[]>(
+      "SELECT id, name FROM cards WHERE LOWER(name) LIKE ? LIMIT 10",
+      [queryStr],
+    );
+    return results;
   }
 }
 
