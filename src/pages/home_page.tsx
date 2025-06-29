@@ -5,7 +5,7 @@ import {
   flexRender,
   getCoreRowModel,
 } from "@tanstack/solid-table";
-import { createSignal, For, Show } from "solid-js";
+import { type Component, createSignal, For, Show } from "solid-js";
 
 import { IconPlus, IconX } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";
@@ -58,7 +58,7 @@ export function HomePage() {
       {/* Header */}
       <div class="flex mb-margin justify-between items-baseline">
         <h1 class="text-4xl leading-tight">Projects</h1>
-        <NewProjectDialog />
+        <NewProjectDialog project_list={projects()} />
         {/* <Button
           onMouseDown={async () => {
             const { sync_scryfall_cards } = await import("../lib/import_cards");
@@ -81,7 +81,9 @@ export function HomePage() {
   );
 }
 
-const NewProjectDialog = () => {
+const NewProjectDialog: Component<{ project_list?: ProjectMetadata[] }> = (
+  props,
+) => {
   const [dialog_open, set_dialog_open] = createSignal(false);
   const [project_name, set_project_name] = createSignal("");
 
@@ -93,6 +95,7 @@ const NewProjectDialog = () => {
 
     set_active_project_id(project_id);
     set_dialog_open(false);
+    set_project_name("");
     // navigate("/project", { replace: true });
   };
 
@@ -117,9 +120,20 @@ const NewProjectDialog = () => {
         <Dialog.Header>
           <Dialog.Title>New Project</Dialog.Title>
         </Dialog.Header>
-        <TextField onChange={set_project_name} value={project_name()}>
+        <TextField
+          onChange={set_project_name}
+          validationState={
+            !props.project_list?.some((p) => p.name === project_name())
+              ? "valid"
+              : "invalid"
+          }
+          value={project_name()}
+        >
           <TextField.Label>Name</TextField.Label>
           <TextField.Input />
+          <TextField.ErrorMessage>
+            Project name already exists
+          </TextField.ErrorMessage>
         </TextField>
         <Button onMouseDown={handle_new_project} variant="success">
           Create

@@ -115,7 +115,14 @@ class MoxcelDatabase {
       throw new Error("Project name must be a non-empty string.");
     }
 
-    // Name should be validated as unique before passing to this function
+    const existing = await this.db.select<{ id: number }[]>(
+      "SELECT id FROM projects WHERE name = ?",
+      [name],
+    );
+    if (existing.length > 0) {
+      throw new Error(`Project name '${name}' already exists.`);
+    }
+
     const result = await this.db.execute(
       "INSERT INTO projects (name, format) VALUES (?, ?)",
       [name, "list"],
