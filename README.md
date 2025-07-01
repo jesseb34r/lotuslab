@@ -13,6 +13,8 @@ An offline app for editing and maintaining lists of Magic the Gathering cards.
 - [ ] Save/Export decklist file
 - [ ] Basic query and sort functionality within a list
 - [ ] Basic project views (cube, deck, list, etc)
+- [ ] Initial command palette implementation
+- [ ] Decide on a better name than moxcel
 - [x] Basic UI to view a list, use cube as default for sorting rn
 - [x] Basic edits -- add + delete
   - start with typing card names, scryfall search later
