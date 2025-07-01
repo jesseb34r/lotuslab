@@ -6,14 +6,17 @@ An offline app for editing and maintaining lists of Magic the Gathering cards.
 - Prioritize editing and maintaining experience, functionality outside of this scope should be achieved by interfacing with other tools (unix philosophy).
 - Users should own their data completely. Use a plain text file for list storage and prioritize interfacing with common file formats such as cardname decklists and cubecobra-style csvs.
 
-## First Alpha Functionality
-- [ ] Open decklist file
-- [ ] Basic UI to view a list, use cube as default for sorting rn
-- [ ] Basic edits -- add + delete
-  - start with typing card names, scryfall search later
+## Roadmap to 0.1.0 Alpha
+- [ ] All cards from default_cards in db
+- [ ] Card search
+- [ ] Import decklist file
 - [ ] Save/Export decklist file
 - [ ] Basic query and sort functionality within a list
-- [ ] Hovering a card fetches the image from scryfall
+- [ ] Basic project views (cube, deck, list, etc)
+- [x] Basic UI to view a list, use cube as default for sorting rn
+- [x] Basic edits -- add + delete
+  - start with typing card names, scryfall search later
+- [x] Hovering a card fetches the image from scryfalld
 
 ## 1.0/Beta Feature Goals
 - Offline and Local First
@@ -40,7 +43,7 @@ An offline app for editing and maintaining lists of Magic the Gathering cards.
   - CubeCobra
   - Draftmancer
   - Moxfield and other deckbuilding sites
-  
+
 ## Contributing
 prerequisites:
 - git
