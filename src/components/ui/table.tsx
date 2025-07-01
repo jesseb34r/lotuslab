@@ -1,9 +1,9 @@
-import type { Component, ComponentProps } from "solid-js";
+import type { ComponentProps } from "solid-js";
 import { splitProps } from "solid-js";
 
 import { cn } from "../../lib/utils";
 
-const Root: Component<ComponentProps<"table">> = (props) => {
+function Root(props: ComponentProps<"table">) {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <div class="relative w-full overflow-auto">
@@ -13,23 +13,23 @@ const Root: Component<ComponentProps<"table">> = (props) => {
       />
     </div>
   );
-};
+}
 
-const Header: Component<ComponentProps<"thead">> = (props) => {
+function Header(props: ComponentProps<"thead">) {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <thead class={cn("[&_tr]:hover:bg-inherit", local.class)} {...others} />
   );
-};
+}
 
-const Body: Component<ComponentProps<"tbody">> = (props) => {
+function Body(props: ComponentProps<"tbody">) {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <tbody class={cn("[&_tr:last-child]:border-0", local.class)} {...others} />
   );
-};
+}
 
-const Footer: Component<ComponentProps<"tfoot">> = (props) => {
+function Footer(props: ComponentProps<"tfoot">) {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <tfoot
@@ -37,9 +37,9 @@ const Footer: Component<ComponentProps<"tfoot">> = (props) => {
       {...others}
     />
   );
-};
+}
 
-const Row: Component<ComponentProps<"tr">> = (props) => {
+function Row(props: ComponentProps<"tr">) {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <tr
@@ -50,9 +50,9 @@ const Row: Component<ComponentProps<"tr">> = (props) => {
       {...others}
     />
   );
-};
+}
 
-const Head: Component<ComponentProps<"th">> = (props) => {
+function Head(props: ComponentProps<"th">) {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <th
@@ -63,9 +63,9 @@ const Head: Component<ComponentProps<"th">> = (props) => {
       {...others}
     />
   );
-};
+}
 
-const Cell: Component<ComponentProps<"td">> = (props) => {
+function Cell(props: ComponentProps<"td">) {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <td
@@ -73,9 +73,9 @@ const Cell: Component<ComponentProps<"td">> = (props) => {
       {...others}
     />
   );
-};
+}
 
-const Caption: Component<ComponentProps<"caption">> = (props) => {
+function Caption(props: ComponentProps<"caption">) {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <caption
@@ -83,7 +83,7 @@ const Caption: Component<ComponentProps<"caption">> = (props) => {
       {...others}
     />
   );
-};
+}
 
 export const Table = Object.assign(Root, {
   Header,

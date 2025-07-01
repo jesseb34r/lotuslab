@@ -1,7 +1,7 @@
 import { Button as ButtonPrimitive } from "@kobalte/core/button";
 import * as DialogPrimitive from "@kobalte/core/dialog";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
-import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
+import type { ComponentProps, JSX, ValidComponent } from "solid-js";
 import { splitProps } from "solid-js";
 
 import { cn } from "../../lib/utils";
@@ -11,9 +11,9 @@ const Root = DialogPrimitive.Root;
 type DialogCloseButtonXProps<T extends ValidComponent = "button"> =
   DialogPrimitive.DialogCloseButtonProps<T> & { class?: string | undefined };
 
-const CloseButtonX = <T extends ValidComponent = "button">(
+function CloseButtonX<T extends ValidComponent = "button">(
   props: PolymorphicProps<T, DialogCloseButtonXProps<T>>,
-) => {
+) {
   const [, rest] = splitProps(props as DialogCloseButtonXProps, ["class"]);
   return (
     <ButtonPrimitive
@@ -39,9 +39,9 @@ const CloseButtonX = <T extends ValidComponent = "button">(
       <span class="sr-only">Close</span>
     </ButtonPrimitive>
   );
-};
+}
 
-const Portal: Component<DialogPrimitive.DialogPortalProps> = (props) => {
+function Portal(props: DialogPrimitive.DialogPortalProps) {
   const [, rest] = splitProps(props, ["children"]);
   return (
     <DialogPrimitive.Portal {...rest}>
@@ -50,14 +50,14 @@ const Portal: Component<DialogPrimitive.DialogPortalProps> = (props) => {
       </div>
     </DialogPrimitive.Portal>
   );
-};
+}
 
 type DialogOverlayProps<T extends ValidComponent = "div"> =
   DialogPrimitive.DialogOverlayProps<T> & { class?: string | undefined };
 
-const Overlay = <T extends ValidComponent = "div">(
+function Overlay<T extends ValidComponent = "div">(
   props: PolymorphicProps<T, DialogOverlayProps<T>>,
-) => {
+) {
   const [, rest] = splitProps(props as DialogOverlayProps, ["class"]);
   return (
     <DialogPrimitive.Overlay
@@ -65,7 +65,7 @@ const Overlay = <T extends ValidComponent = "div">(
       {...rest}
     />
   );
-};
+}
 
 type DialogContentProps<T extends ValidComponent = "div"> =
   DialogPrimitive.DialogContentProps<T> & {
@@ -73,9 +73,9 @@ type DialogContentProps<T extends ValidComponent = "div"> =
     children?: JSX.Element;
   };
 
-const Content = <T extends ValidComponent = "div">(
+function Content<T extends ValidComponent = "div">(
   props: PolymorphicProps<T, DialogContentProps<T>>,
-) => {
+) {
   const [, rest] = splitProps(props as DialogContentProps, ["class"]);
   return (
     <Portal>
@@ -89,9 +89,9 @@ const Content = <T extends ValidComponent = "div">(
       />
     </Portal>
   );
-};
+}
 
-const Header: Component<ComponentProps<"div">> = (props) => {
+function Header(props: ComponentProps<"div">) {
   const [, rest] = splitProps(props, ["class"]);
   return (
     <div
@@ -102,23 +102,23 @@ const Header: Component<ComponentProps<"div">> = (props) => {
       {...rest}
     />
   );
-};
+}
 
-const Footer: Component<ComponentProps<"div">> = (props) => {
+function Footer(props: ComponentProps<"div">) {
   const [, rest] = splitProps(props, ["class"]);
   return (
     <div class={cn("flex flex-row justify-between", props.class)} {...rest} />
   );
-};
+}
 
 type DialogTitleProps<T extends ValidComponent = "h2"> =
   DialogPrimitive.DialogTitleProps<T> & {
     class?: string | undefined;
   };
 
-const Title = <T extends ValidComponent = "h2">(
+function Title<T extends ValidComponent = "h2">(
   props: PolymorphicProps<T, DialogTitleProps<T>>,
-) => {
+) {
   const [, rest] = splitProps(props as DialogTitleProps, ["class"]);
   return (
     <DialogPrimitive.Title
@@ -129,16 +129,16 @@ const Title = <T extends ValidComponent = "h2">(
       {...rest}
     />
   );
-};
+}
 
 type DialogDescriptionProps<T extends ValidComponent = "p"> =
   DialogPrimitive.DialogDescriptionProps<T> & {
     class?: string | undefined;
   };
 
-const Description = <T extends ValidComponent = "p">(
+function Description<T extends ValidComponent = "p">(
   props: PolymorphicProps<T, DialogDescriptionProps<T>>,
-) => {
+) {
   const [, rest] = splitProps(props as DialogDescriptionProps, ["class"]);
   return (
     <DialogPrimitive.Description
@@ -146,7 +146,7 @@ const Description = <T extends ValidComponent = "p">(
       {...rest}
     />
   );
-};
+}
 
 export const Dialog = Object.assign(Root, {
   CloseButtonX,

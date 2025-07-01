@@ -81,23 +81,21 @@ export function HomePage() {
   );
 }
 
-const NewProjectDialog: Component<{ project_list?: ProjectMetadata[] }> = (
-  props,
-) => {
+function NewProjectDialog(props: { project_list?: ProjectMetadata[] }) {
   const [dialog_open, set_dialog_open] = createSignal(false);
   const [project_name, set_project_name] = createSignal("");
 
   const navigate = useNavigate();
   const create_project = useAction(action_create_project);
 
-  const handle_new_project = async () => {
+  async function handle_new_project() {
     const project_id = await create_project(project_name());
 
     set_active_project_id(project_id);
     set_dialog_open(false);
     set_project_name("");
     // navigate("/project", { replace: true });
-  };
+  }
 
   return (
     <Dialog onOpenChange={set_dialog_open} open={dialog_open()}>
@@ -141,7 +139,7 @@ const NewProjectDialog: Component<{ project_list?: ProjectMetadata[] }> = (
       </Dialog.Content>
     </Dialog>
   );
-};
+}
 
 const ProjectTable = (props: {
   columns: ColumnDef<ProjectMetadata>[];

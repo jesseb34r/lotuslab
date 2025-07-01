@@ -216,7 +216,7 @@ export function ProjectPage() {
   );
 }
 
-const AddCardsDialog: Component<{ list_id: number }> = (props) => {
+function AddCardsDialog(props: { list_id: number }) {
   const [dialog_open, set_dialog_open] = createSignal(false);
   const [card_list_text, set_card_list_text] = createSignal("");
 
@@ -294,15 +294,15 @@ const AddCardsDialog: Component<{ list_id: number }> = (props) => {
       </Dialog.Content>
     </Dialog>
   );
-};
+}
 
-const CardTable = (props: {
+function CardTable(props: {
   columns: ColumnDef<
     { metadata: CardMetadata; card: Card },
     string | null | undefined
   >[];
   data: { metadata: CardMetadata; card: Card }[];
-}) => {
+}) {
   const table = createSolidTable({
     columns: props.columns,
     get data() {
@@ -329,23 +329,25 @@ const CardTable = (props: {
     set_preview_img_uri(card_img_uri);
   }
 
-  const CardPreview = () => (
-    <Show when={preview_show()}>
-      <Portal>
-        <img
-          alt="card preview"
-          class="fixed aspect-[5/7] h-80 rounded-xl"
-          ref={set_preview_ref}
-          src={preview_img_uri()}
-          style={{
-            left: `${preview_offset()!.x}px`,
-            "pointer-events": "none",
-            top: `${preview_offset()!.y}px`,
-          }}
-        />
-      </Portal>
-    </Show>
-  );
+  function CardPreview() {
+    return (
+      <Show when={preview_show()}>
+        <Portal>
+          <img
+            alt="card preview"
+            class="fixed aspect-[5/7] h-80 rounded-xl"
+            ref={set_preview_ref}
+            src={preview_img_uri()}
+            style={{
+              left: `${preview_offset()!.x}px`,
+              "pointer-events": "none",
+              top: `${preview_offset()!.y}px`,
+            }}
+          />
+        </Portal>
+      </Show>
+    );
+  }
 
   return (
     <>
@@ -398,4 +400,4 @@ const CardTable = (props: {
       <CardPreview />
     </>
   );
-};
+}

@@ -8,12 +8,12 @@ export function NotFound() {
         The page you're looking for doesn't exist.
       </p>
       <A
-        href="/"
         class="
           px-4 py-2 rounded cursor-pointer
           bg-grass-4 dark:bg-grassdark-4
           hover:bg-grass-5 dark:hover:bg-grassdark-5
         "
+        href="/"
       >
         Return Home
       </A>
