@@ -60,6 +60,23 @@ export const action_delete_list = action(
   },
 );
 
+export const action_add_cards_to_list = action(
+  async (list_id: number, card_ids: string[]) => {
+    const db = await MoxcelDatabase.get_instance();
+    const inserted_ids: number[] = [];
+    for (let id_index = 0; id_index < card_ids.length; id_index++) {
+      const insertedId = await db.add_card_to_list(list_id, card_ids[id_index]);
+      inserted_ids.push(insertedId);
+    }
+    return json(inserted_ids, {
+      revalidate: [
+        get_cards_in_list.keyFor(list_id),
+        get_full_cards_in_list.keyFor(list_id),
+      ],
+    });
+  },
+);
+
 export const get_lists_by_project = query(async (project_id: number) => {
   const db = await MoxcelDatabase.get_instance();
   return await db.get_lists_by_project(project_id);
@@ -69,6 +86,11 @@ export const get_cards_in_list = query(async (list_id: number) => {
   const db = await MoxcelDatabase.get_instance();
   return await db.get_cards_in_list(list_id);
 }, "get_cards_in_list");
+
+export const get_full_cards_in_list = query(async (list_id: number) => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.get_full_cards_in_list(list_id);
+}, "get_full_cards_in_list");
 
 export const get_card_by_id = query(async (card_id: string) => {
   const db = await MoxcelDatabase.get_instance();
@@ -85,7 +107,14 @@ export const search_cards_by_name = query(async (name: string) => {
   return await db.search_cards_by_name(name);
 }, "query_search_cards_by_name");
 
-// private db class with all the actual db functions on it
+export const find_versions_by_exact_name = query(async (name: string) => {
+  const db = await MoxcelDatabase.get_instance();
+  return await db.find_versions_by_exact_name(name);
+}, "find_versions_by_exact_name");
+
+// =====================================================
+// = Database Class: all actual db functions are below =
+// =====================================================
 class MoxcelDatabase {
   private static instance: MoxcelDatabase | null = null;
   private db: Database;
@@ -293,6 +322,151 @@ class MoxcelDatabase {
   }
 
   /**
+   * Retrieves all cards in a list, joined with the cards table for full card data.
+   *
+   * @returns An array of objects: { metadata: CardMetadata, card: Card }
+   */
+  async get_full_cards_in_list(
+    list_id: number,
+  ): Promise<{ metadata: CardMetadata; card: Card }[]> {
+    const rows = await this.db.select<
+      {
+        c_id: number;
+        c_card_id: string;
+        c_list_id: number;
+        c_notes?: string;
+        id: string; // correct - cards.id is scryfall id
+        layout?: string | null;
+        oracle_id?: string | null;
+        scryfall_uri?: string | null;
+        cmc: number;
+        cid_white: number;
+        cid_blue: number;
+        cid_black: number;
+        cid_red: number;
+        cid_green: number;
+        cid_count: number;
+        is_white: number;
+        is_blue: number;
+        is_black: number;
+        is_red: number;
+        is_green: number;
+        color_count: number;
+        defense?: string | null;
+        hand_modifier?: string | null;
+        loyalty?: string | null;
+        mana_cost?: string | null;
+        name?: string | null;
+        oracle_text?: string | null;
+        power?: string | null;
+        reserved: number;
+        toughness?: string | null;
+        type_line?: string | null;
+        artist?: string | null;
+        booster: number;
+        card_back_id?: string | null;
+        collector_number?: string | null;
+        content_warning: number;
+        digital: number;
+        flavor_name?: string | null;
+        flavor_text?: string | null;
+        full_art: number;
+        image_uri?: string | null;
+        oversized: number;
+        promo: number;
+        rarity?: string | null;
+        released_at?: string | null;
+        reprint: number;
+        set_name?: string | null;
+        set_type?: string | null;
+        set_code?: string | null;
+        story_spotlight: number;
+        textless: number;
+        variation: number;
+        variation_of?: string | null;
+      }[]
+    >(
+      `SELECT
+        cards_in_lists.id as c_id,
+        cards_in_lists.card_id as c_card_id,
+        cards_in_lists.list_id as c_list_id,
+        cards_in_lists.notes as c_notes,
+        cards.id, cards.layout, cards.oracle_id, cards.scryfall_uri, cards.cmc,
+        cards.cid_white, cards.cid_blue, cards.cid_black, cards.cid_red, cards.cid_green, cards.cid_count,
+        cards.is_white, cards.is_blue, cards.is_black, cards.is_red, cards.is_green, cards.color_count,
+        cards.defense, cards.hand_modifier, cards.loyalty, cards.mana_cost, cards.name, cards.oracle_text, cards.power,
+        cards.reserved, cards.toughness, cards.type_line, cards.artist, cards.booster, cards.card_back_id,
+        cards.collector_number, cards.content_warning, cards.digital, cards.flavor_name, cards.flavor_text,
+        cards.full_art, cards.image_uri, cards.oversized, cards.promo, cards.rarity, cards.released_at,
+        cards.reprint, cards.set_name, cards.set_type, cards.set_code, cards.story_spotlight, cards.textless,
+        cards.variation, cards.variation_of
+      FROM cards_in_lists
+      JOIN cards ON cards_in_lists.card_id = cards.id
+      WHERE cards_in_lists.list_id = ?`,
+      [list_id],
+    );
+    return rows.map((row) => ({
+      metadata: {
+        id: row.c_id,
+        card_id: row.c_card_id,
+        list_id: row.c_list_id,
+        notes: row.c_notes,
+      },
+      card: {
+        scryfall_id: row.id,
+        layout: row.layout,
+        oracle_id: row.oracle_id,
+        scryfall_uri: row.scryfall_uri,
+        cmc: row.cmc,
+        cid_white: row.cid_white,
+        cid_blue: row.cid_blue,
+        cid_black: row.cid_black,
+        cid_red: row.cid_red,
+        cid_green: row.cid_green,
+        cid_count: row.cid_count,
+        is_white: row.is_white,
+        is_blue: row.is_blue,
+        is_black: row.is_black,
+        is_red: row.is_red,
+        is_green: row.is_green,
+        color_count: row.color_count,
+        defense: row.defense,
+        hand_modifier: row.hand_modifier,
+        loyalty: row.loyalty,
+        mana_cost: row.mana_cost,
+        name: row.name,
+        oracle_text: row.oracle_text,
+        power: row.power,
+        reserved: row.reserved,
+        toughness: row.toughness,
+        type_line: row.type_line,
+        artist: row.artist,
+        booster: row.booster,
+        card_back_id: row.card_back_id,
+        collector_number: row.collector_number,
+        content_warning: row.content_warning,
+        digital: row.digital,
+        flavor_name: row.flavor_name,
+        flavor_text: row.flavor_text,
+        full_art: row.full_art,
+        image_uri: row.image_uri,
+        oversized: row.oversized,
+        promo: row.promo,
+        rarity: row.rarity,
+        released_at: row.released_at,
+        reprint: row.reprint,
+        set_name: row.set_name,
+        set_type: row.set_type,
+        set_code: row.set_code,
+        story_spotlight: row.story_spotlight,
+        textless: row.textless,
+        variation: row.variation,
+        variation_of: row.variation_of,
+      },
+    }));
+  }
+
+  /**
    * Updates the notes for a card in a list.
    */
   async update_card_in_list(id: number, notes?: string): Promise<void> {
@@ -359,6 +533,37 @@ class MoxcelDatabase {
     );
     return results;
   }
+
+  /**
+   * Finds all versions of a card given its exact name (case insensitive), returning id, name, released_at, set_code.
+   *
+   * @param name The exact name of the card.
+   * @returns An array of objects: { id, name, released_at, set_code }
+   */
+  async find_versions_by_exact_name(name: string): Promise<
+    {
+      id: string;
+      name: string | null;
+      released_at: string | null;
+      set_code: string | null;
+    }[]
+  > {
+    if (!name || name.trim().length === 0) {
+      return [];
+    }
+    const results = await this.db.select<
+      {
+        id: string;
+        name: string | null;
+        released_at: string | null;
+        set_code: string | null;
+      }[]
+    >(
+      "SELECT id, name, released_at, set_code FROM cards WHERE LOWER(name) = LOWER(?) ORDER BY released_at DESC",
+      [name.trim()],
+    );
+    return results;
+  }
 }
 
 export const project_format_options = [
@@ -388,7 +593,8 @@ export type ListMetadata = {
 
 export type CardMetadata = {
   id: number;
-  card_id: string;
+  card_id: string; // reference to scryfall_id
+  list_id: number;
   notes?: string;
 };
 
@@ -403,7 +609,7 @@ export type Project = {
 };
 
 export type Card = {
-  id: string;
+  scryfall_id: string;
   layout?: string | null;
   oracle_id?: string | null;
   scryfall_uri?: string | null;

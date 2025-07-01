@@ -1,20 +1,22 @@
-import { Search } from "@kobalte/core/search";
 import type { ScryfallCard } from "@scryfall/api-types";
 import { createAsync, useAction } from "@solidjs/router";
 import { type Component, createSignal, For, Show, Suspense } from "solid-js";
 import { Portal } from "solid-js/web";
-import { IconPencil, IconPlus, IconSearch } from "../components/icons.tsx";
+
+import { IconPencil, IconPlus } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
 import { TextField } from "../components/ui/text-field";
-import { active_project_id, useUniqueCardNames } from "../index.tsx";
+import { active_project_id } from "../index.tsx";
 import {
+  action_add_cards_to_list,
   action_update_project_metadata,
+  find_versions_by_exact_name,
   get_card_by_id,
   get_cards_in_list,
+  get_full_cards_in_list,
   get_lists_by_project,
   get_project_by_id,
-  search_cards_by_name,
 } from "../lib/db";
 
 export function ProjectPage() {
@@ -164,24 +166,39 @@ export function ProjectPage() {
             </>
           )}
         </Show>
-        <div class="flex mb-margin mt-gutter justify-between items-baseline">
-          <h2 class="font-bold">Main</h2>
-          <AddCardSearch />
-        </div>
         <ul class="list-disc list-inside space-y-1">
           <Suspense>
             <Show when={lists()}>
               {(all_lists) => {
-                const main_list = all_lists().find(
-                  (list) => list.name === "main",
-                );
-                const cards = createAsync(() =>
-                  get_cards_in_list(main_list!.id),
-                );
                 return (
                   <Suspense>
-                    <For each={cards()}>
-                      {(card) => <Card card_id={card.card_id} />}
+                    <For each={all_lists()}>
+                      {(list) => {
+                        const cards = createAsync(() =>
+                          get_full_cards_in_list(list.id),
+                        );
+                        return (
+                          <>
+                            <div class="flex mb-margin mt-gutter justify-between items-baseline">
+                              <h2 class="font-bold">{list.name}</h2>
+                              <AddCardsDialog list_id={list.id} />
+                            </div>
+                            <div>
+                              <ul>
+                                <Suspense>
+                                  <Show when={cards()}>
+                                    {(all_cards) => (
+                                      <For each={all_cards()}>
+                                        {(card) => <li>{card.card.name}</li>}
+                                      </For>
+                                    )}
+                                  </Show>
+                                </Suspense>
+                              </ul>
+                            </div>
+                          </>
+                        );
+                      }}
                     </For>
                   </Suspense>
                 );
@@ -200,60 +217,82 @@ const Card: Component<{ card_id: string }> = (props) => {
   return <li>{card_details()?.name}</li>;
 };
 
-const AddCardSearch = () => {
-  const [options, set_options] = createSignal<
-    { name: string; oracle_id: string }[]
-  >([]);
-  const [card, set_card] = createSignal<{
-    name: string;
-    oracle_id: string;
-  } | null>();
-  const unique_card_names = useUniqueCardNames();
+const AddCardsDialog: Component<{ list_id: number }> = (props) => {
+  const [dialog_open, set_dialog_open] = createSignal(false);
+  const [card_list_text, set_card_list_text] = createSignal("");
+
+  const add_cards_to_list = useAction(action_add_cards_to_list);
+
+  function handle_open() {
+    set_dialog_open(true);
+    set_card_list_text("");
+  }
+
+  async function handle_add_cards() {
+    const card_ids = await parse_pasted_cards_to_ids(card_list_text());
+    add_cards_to_list(props.list_id, card_ids);
+    set_dialog_open(false);
+  }
+
+  // TODO: move this function to a more appropriate spot
+  async function parse_pasted_cards_to_ids(
+    pasted_cards: string,
+  ): Promise<string[]> {
+    const lines = pasted_cards
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line !== "");
+
+    const card_ids: string[] = [];
+
+    for (const line of lines) {
+      // Check if the line has a quantity prefix like "4x Card Name"
+      const match = line.match(/^(\d+)(?:x\s*|\s+)(.+)$/i);
+
+      if (match) {
+        const quantity = Math.max(1, Number.parseInt(match[1]));
+        const card_name = match[2].trim();
+
+        const all_versions = await find_versions_by_exact_name(card_name);
+        card_ids.push(all_versions[0].id);
+      } else {
+        const all_versions = await find_versions_by_exact_name(line.trim());
+        if (all_versions && all_versions.length > 0) {
+          card_ids.push(all_versions[0].id);
+        }
+      }
+    }
+
+    return card_ids;
+  }
 
   return (
-    <Search
-      itemComponent={(props) => (
-        <Search.Item
-          class="relative flex cursor-default select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[highlighted]:bg-neutral-4 data-[disabled]:opacity-50 text-neutral-11 data-[highlighted]:text-neutral-12"
-          item={props.item}
-        >
-          <Search.ItemLabel>{props.item.rawValue.name}</Search.ItemLabel>
-        </Search.Item>
-      )}
-      onChange={(result) => set_card(result)}
-      onInputChange={(query) => {
-        if (!query) {
-          set_options([]);
-          return;
-        }
-
-        const filtered = unique_card_names!()!.filter((c) =>
-          c.name.toLowerCase().includes(query.toLowerCase()),
-        );
-
-        set_options(filtered);
-      }}
-      optionLabel={(o) => o.name}
-      options={options()}
-      placeholder="Search a card..."
-      triggerMode="input"
-    >
-      <Search.Label />
-
-      <Search.Control class="flex h-10 items-center rounded-md border px-3">
-        <Search.Indicator>
-          <Search.Icon>
-            <IconSearch />
-          </Search.Icon>
-        </Search.Indicator>
-        <Search.Input class="flex size-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-neutral-11 disabled:cursor-not-allowed disabled:opacity-50" />
-      </Search.Control>
-
-      <Search.Portal>
-        <Search.Content class="relative z-50 min-w-32 overflow-hidden rounded-md border bg-neutral-3 shadow-md">
-          <Search.Listbox class="m-0 p-1" />
-        </Search.Content>
-      </Search.Portal>
-    </Search>
+    <Dialog onOpenChange={set_dialog_open} open={dialog_open()}>
+      <Button onMouseDown={handle_open} size="icon" variant="success">
+        <IconPlus />
+      </Button>
+      <Dialog.Content
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            handle_add_cards();
+          }
+        }}
+      >
+        <Dialog.CloseButtonX onMouseDown={() => set_dialog_open(false)} />
+        <Dialog.Header>
+          <Dialog.Title>Add Cards</Dialog.Title>
+        </Dialog.Header>
+        <div class="flex flex-col items-stretch gap-4">
+          <TextField onChange={set_card_list_text} value={card_list_text()}>
+            <TextField.Label>Paste Card List</TextField.Label>
+            <TextField.TextArea placeholder="Paste cards here, one per line..." />
+          </TextField>
+          <Button onMouseDown={handle_add_cards} variant="success">
+            Add Cards
+          </Button>
+        </div>
+      </Dialog.Content>
+    </Dialog>
   );
 };
