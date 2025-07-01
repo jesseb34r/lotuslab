@@ -31,6 +31,9 @@
   },
 
   "linter": {
+    "domains": {
+      "solid": "all"
+    },
     "rules": {
       "a11y": {
         "noSvgWithoutTitle": "off",
