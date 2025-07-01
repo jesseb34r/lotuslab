@@ -1,23 +1,66 @@
-import type { ScryfallCard } from "@scryfall/api-types";
 import { createAsync, useAction } from "@solidjs/router";
+import { createSolidTable, flexRender } from "@tanstack/solid-table";
+import {
+  type ColumnDef,
+  createColumnHelper,
+  getCoreRowModel,
+} from "@tanstack/table-core";
 import { type Component, createSignal, For, Show, Suspense } from "solid-js";
 import { Portal } from "solid-js/web";
-
-import { IconPencil, IconPlus } from "../components/icons.tsx";
+import { IconPencil, IconPlus, IconX } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";
 import { Dialog } from "../components/ui/dialog";
+import { Table } from "../components/ui/table.tsx";
 import { TextField } from "../components/ui/text-field";
 import { active_project_id } from "../index.tsx";
 import {
   action_add_cards_to_list,
+  action_remove_card_from_list,
   action_update_project_metadata,
+  type Card,
+  type CardMetadata,
   find_versions_by_exact_name,
-  get_card_by_id,
-  get_cards_in_list,
   get_full_cards_in_list,
   get_lists_by_project,
   get_project_by_id,
 } from "../lib/db";
+
+const column_helper = createColumnHelper<{
+  metadata: CardMetadata;
+  card: Card;
+}>();
+const card_columns: ColumnDef<
+  { metadata: CardMetadata; card: Card },
+  string | null | undefined
+>[] = [
+  column_helper.accessor("card.name", {
+    header: "Name",
+  }),
+  column_helper.accessor("card.mana_cost", {
+    header: "Mana Cost",
+  }),
+  {
+    id: "delete",
+    cell: (props) => {
+      const delete_card = useAction(action_remove_card_from_list);
+      return (
+        <Button
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            delete_card(
+              props.row.original.metadata.id,
+              props.row.original.metadata.list_id,
+            );
+          }}
+          size="icon"
+          variant="danger"
+        >
+          <IconX />
+        </Button>
+      );
+    },
+  },
+];
 
 export function ProjectPage() {
   const project_metadata = createAsync(() =>
@@ -30,27 +73,6 @@ export function ProjectPage() {
     }
     return get_lists_by_project(local_metadata.id);
   });
-
-  const [preview_show, set_preview_show] = createSignal(false);
-  const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
-  const [preview_offset, set_preview_offset] = createSignal({ x: 0, y: 0 });
-  const [preview_img_uri, set_preview_img_uri] = createSignal("");
-
-  function handle_set_preview(
-    e: MouseEvent,
-    card: ScryfallCard.AnySingleFaced,
-  ) {
-    const offsetX =
-      e.x + preview_ref()!.getBoundingClientRect().width > window.innerWidth
-        ? window.innerWidth - preview_ref()!.getBoundingClientRect().width
-        : e.x + 5;
-    const offsetY =
-      e.y + preview_ref()!.getBoundingClientRect().height > window.innerHeight
-        ? window.innerHeight - preview_ref()!.getBoundingClientRect().height
-        : e.y + 10;
-    set_preview_offset({ x: offsetX, y: offsetY });
-    set_preview_img_uri(card.image_uris!.normal);
-  }
 
   const EditProjectDialog = () => {
     const [project_settings_dialog_open, set_project_settings_dialog_open] =
@@ -133,24 +155,6 @@ export function ProjectPage() {
     );
   };
 
-  const CardPreview = () => (
-    <Show when={preview_show()}>
-      <Portal>
-        <img
-          alt="card preview"
-          class="fixed aspect-[5/7] h-80 rounded-xl"
-          ref={set_preview_ref}
-          src={preview_img_uri()}
-          style={{
-            left: `${preview_offset()!.x}px`,
-            "pointer-events": "none",
-            top: `${preview_offset()!.y}px`,
-          }}
-        />
-      </Portal>
-    </Show>
-  );
-
   return (
     <main class="flex flex-col pt-10 mx-auto w-[80%]">
       <Suspense>
@@ -187,10 +191,11 @@ export function ProjectPage() {
                               <ul>
                                 <Suspense>
                                   <Show when={cards()}>
-                                    {(all_cards) => (
-                                      <For each={all_cards()}>
-                                        {(card) => <li>{card.card.name}</li>}
-                                      </For>
+                                    {(safe_cards) => (
+                                      <CardTable
+                                        columns={card_columns}
+                                        data={safe_cards()}
+                                      />
                                     )}
                                   </Show>
                                 </Suspense>
@@ -207,15 +212,9 @@ export function ProjectPage() {
           </Suspense>
         </ul>
       </Suspense>
-      <CardPreview />
     </main>
   );
 }
-
-const Card: Component<{ card_id: string }> = (props) => {
-  const card_details = createAsync(() => get_card_by_id(props.card_id));
-  return <li>{card_details()?.name}</li>;
-};
 
 const AddCardsDialog: Component<{ list_id: number }> = (props) => {
   const [dialog_open, set_dialog_open] = createSignal(false);
@@ -294,5 +293,109 @@ const AddCardsDialog: Component<{ list_id: number }> = (props) => {
         </div>
       </Dialog.Content>
     </Dialog>
+  );
+};
+
+const CardTable = (props: {
+  columns: ColumnDef<
+    { metadata: CardMetadata; card: Card },
+    string | null | undefined
+  >[];
+  data: { metadata: CardMetadata; card: Card }[];
+}) => {
+  const table = createSolidTable({
+    columns: props.columns,
+    get data() {
+      return props.data;
+    },
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  const [preview_show, set_preview_show] = createSignal(false);
+  const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
+  const [preview_offset, set_preview_offset] = createSignal({ x: 0, y: 0 });
+  const [preview_img_uri, set_preview_img_uri] = createSignal("");
+
+  function handle_set_preview(e: MouseEvent, card_img_uri: string) {
+    const offsetX =
+      e.x + preview_ref()!.getBoundingClientRect().width > window.innerWidth
+        ? window.innerWidth - preview_ref()!.getBoundingClientRect().width
+        : e.x + 5;
+    const offsetY =
+      e.y + preview_ref()!.getBoundingClientRect().height > window.innerHeight
+        ? window.innerHeight - preview_ref()!.getBoundingClientRect().height
+        : e.y + 10;
+    set_preview_offset({ x: offsetX, y: offsetY });
+    set_preview_img_uri(card_img_uri);
+  }
+
+  const CardPreview = () => (
+    <Show when={preview_show()}>
+      <Portal>
+        <img
+          alt="card preview"
+          class="fixed aspect-[5/7] h-80 rounded-xl"
+          ref={set_preview_ref}
+          src={preview_img_uri()}
+          style={{
+            left: `${preview_offset()!.x}px`,
+            "pointer-events": "none",
+            top: `${preview_offset()!.y}px`,
+          }}
+        />
+      </Portal>
+    </Show>
+  );
+
+  return (
+    <>
+      <Table>
+        <Table.Header>
+          <For each={table.getHeaderGroups()}>
+            {(header_group) => (
+              <Table.Row>
+                <For each={header_group.headers}>
+                  {(header) => (
+                    <Table.Head colSpan={header.colSpan}>
+                      <Show when={!header.isPlaceholder}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </Show>
+                    </Table.Head>
+                  )}
+                </For>
+              </Table.Row>
+            )}
+          </For>
+        </Table.Header>
+        <Table.Body>
+          <For each={table.getRowModel().rows}>
+            {(row) => (
+              <Table.Row
+                onMouseEnter={() => set_preview_show(true)}
+                onMouseLeave={() => set_preview_show(false)}
+                onMouseMove={(e) =>
+                  handle_set_preview(e, row.original.card.image_uri!)
+                }
+              >
+                <For each={row.getVisibleCells()}>
+                  {(cell) => (
+                    <Table.Cell>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </Table.Cell>
+                  )}
+                </For>
+              </Table.Row>
+            )}
+          </For>
+        </Table.Body>
+      </Table>
+      <CardPreview />
+    </>
   );
 };

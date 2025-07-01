@@ -77,6 +77,19 @@ export const action_add_cards_to_list = action(
   },
 );
 
+export const action_remove_card_from_list = action(
+  async (id: number, list_id: number) => {
+    const db = await MoxcelDatabase.get_instance();
+    await db.remove_card_from_list(id);
+    return reload({
+      revalidate: [
+        get_cards_in_list.keyFor(list_id),
+        get_full_cards_in_list.keyFor(list_id),
+      ],
+    });
+  },
+);
+
 export const get_lists_by_project = query(async (project_id: number) => {
   const db = await MoxcelDatabase.get_instance();
   return await db.get_lists_by_project(project_id);
@@ -559,7 +572,7 @@ class MoxcelDatabase {
         set_code: string | null;
       }[]
     >(
-      "SELECT id, name, released_at, set_code FROM cards WHERE LOWER(name) = LOWER(?) ORDER BY released_at DESC",
+      "SELECT id, name, released_at, set_code FROM cards WHERE LOWER(name) = LOWER(?) ORDER BY released_at ASC",
       [name.trim()],
     );
     return results;
