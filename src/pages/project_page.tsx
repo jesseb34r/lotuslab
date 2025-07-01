@@ -257,7 +257,7 @@ const AddCardsDialog: Component<{ list_id: number }> = (props) => {
       } else {
         const all_versions = await find_versions_by_exact_name(line.trim());
         if (all_versions && all_versions.length > 0) {
-          card_ids.push(all_versions[0].id);
+          card_ids.push(all_versions[0].id); // use first printing
         }
       }
     }
