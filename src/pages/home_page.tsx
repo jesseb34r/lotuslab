@@ -5,7 +5,7 @@ import {
   flexRender,
   getCoreRowModel,
 } from "@tanstack/solid-table";
-import { type Component, createSignal, For, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 
 import { IconPlus, IconX } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";

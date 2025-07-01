@@ -5,7 +5,7 @@ import {
   createColumnHelper,
   getCoreRowModel,
 } from "@tanstack/table-core";
-import { type Component, createSignal, For, Show, Suspense } from "solid-js";
+import { createSignal, For, Show, Suspense } from "solid-js";
 import { Portal } from "solid-js/web";
 import { IconPencil, IconPlus, IconX } from "../components/icons.tsx";
 import { Button } from "../components/ui/button";
