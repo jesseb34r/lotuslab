@@ -1,1 +1,3 @@
-export const SettingsPage = () => <main>Settings Page</main>;
+export function SettingsPage() {
+  return <main>Settings Page</main>;
+}

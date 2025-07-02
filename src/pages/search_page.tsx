@@ -1,1 +1,3 @@
-export const SearchPage = () => <main>Search Page</main>;
+export function SearchPage() {
+  return <main>Search Page</main>;
+}

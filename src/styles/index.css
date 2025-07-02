@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@import "./colors.css";
+@import "./spacing.css";
+@import "./animations.css";
+
+@plugin "@kobalte/tailwindcss";
+
+:focus {
+    outline: none;
+    box-shadow: none;
+}

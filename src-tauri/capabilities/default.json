@@ -3,12 +3,5 @@
   "identifier": "main",
   "description": "main app capabilities",
   "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "dialog:default",
-    "fs:allow-app-read-recursive",
-    "fs:allow-app-write-recursive",
-    "sql:default",
-    "sql:allow-execute"
-  ]
+  "permissions": ["core:default", "sql:default", "sql:allow-execute"]
 }

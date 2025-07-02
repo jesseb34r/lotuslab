@@ -1,52 +1,322 @@
+import { createAsync, useAction } from "@solidjs/router";
+import { createSolidTable, flexRender } from "@tanstack/solid-table";
 import {
-  type Component,
-  createResource,
-  createSignal,
-  For,
-  Show,
-  Suspense,
-} from "solid-js";
+  type ColumnDef,
+  createColumnHelper,
+  getCoreRowModel,
+} from "@tanstack/table-core";
+import { createSignal, For, Show, Suspense } from "solid-js";
 import { Portal } from "solid-js/web";
-import type { ScryfallCard } from "@scryfall/api-types";
-
+import { IconPencil, IconPlus, IconX } from "../components/icons.tsx";
+import { Button } from "../components/ui/button";
+import { Dialog } from "../components/ui/dialog";
+import { Table } from "../components/ui/table.tsx";
+import { TextField } from "../components/ui/text-field";
 import { active_project_id } from "../index.tsx";
-import type { Card } from "../lib/project.ts";
-import { get_project_by_id, update_project_metadata } from "../lib/db.ts";
-import { Dialog } from "@kobalte/core/dialog";
-import { TextField } from "@kobalte/core/text-field";
-import { Button } from "@kobalte/core/button";
+import {
+  action_add_cards_to_list,
+  action_remove_card_from_list,
+  action_update_project_metadata,
+  type Card,
+  type CardMetadata,
+  find_versions_by_exact_name,
+  get_full_cards_in_list,
+  get_lists_by_project,
+  get_project_by_id,
+} from "../lib/db";
+
+const column_helper = createColumnHelper<{
+  metadata: CardMetadata;
+  card: Card;
+}>();
+const card_columns: ColumnDef<
+  { metadata: CardMetadata; card: Card },
+  string | null | undefined
+>[] = [
+  column_helper.accessor("card.name", {
+    header: "Name",
+  }),
+  column_helper.accessor("card.mana_cost", {
+    header: "Mana Cost",
+  }),
+  {
+    id: "delete",
+    cell: (props) => {
+      const delete_card = useAction(action_remove_card_from_list);
+      return (
+        <Button
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            delete_card(
+              props.row.original.metadata.id,
+              props.row.original.metadata.list_id,
+            );
+          }}
+          size="icon"
+          variant="danger"
+        >
+          <IconX />
+        </Button>
+      );
+    },
+  },
+];
 
 export function ProjectPage() {
-  const [project_metadata, { refetch }] = createResource(() =>
+  const project_metadata = createAsync(() =>
     get_project_by_id(active_project_id()!),
   );
+  const lists = createAsync(() => {
+    const local_metadata = project_metadata();
+    if (!local_metadata || !local_metadata.id) {
+      return Promise.resolve([]);
+    }
+    return get_lists_by_project(local_metadata.id);
+  });
 
-  const [project_settings_dialog_open, set_project_settings_dialog_open] =
-    createSignal(false);
-  const [new_project_name, set_new_project_name] = createSignal("");
-  const [new_project_description, set_new_project_description] =
-    createSignal("");
+  const EditProjectDialog = () => {
+    const [project_settings_dialog_open, set_project_settings_dialog_open] =
+      createSignal(false);
+    const [new_project_name, set_new_project_name] = createSignal("");
+    const [new_project_description, set_new_project_description] =
+      createSignal("");
 
-  const handle_edit_project = async () => {
-    await update_project_metadata(
-      active_project_id()!,
-      new_project_name().trim(),
-      new_project_description().trim(),
+    const update_project = useAction(action_update_project_metadata);
+
+    // When dialog opens, default the signals to current values
+    function handle_open() {
+      set_new_project_name(project_metadata()?.name ?? "");
+      set_new_project_description(project_metadata()?.description ?? "");
+      set_project_settings_dialog_open(true);
+    }
+
+    const handle_edit_project = async () => {
+      await update_project(
+        active_project_id()!,
+        new_project_name().trim(),
+        new_project_description().trim(),
+      );
+      set_project_settings_dialog_open(false);
+      set_new_project_name("");
+      set_new_project_description("");
+    };
+
+    return (
+      <Dialog
+        onOpenChange={set_project_settings_dialog_open}
+        open={project_settings_dialog_open()}
+      >
+        <Button onMouseDown={handle_open} size="icon" variant="success">
+          <IconPencil />
+        </Button>
+        <Dialog.Content
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handle_edit_project();
+            }
+          }}
+        >
+          <Dialog.CloseButtonX
+            onMouseDown={() => set_project_settings_dialog_open(false)}
+          />
+          <Dialog.Header>
+            <Dialog.Title>Edit Project</Dialog.Title>
+          </Dialog.Header>
+          <div class="flex flex-col items-stretch justify-center gap-4">
+            <TextField
+              onChange={set_new_project_name}
+              value={new_project_name()}
+            >
+              <TextField.Label>Name</TextField.Label>
+              <TextField.Input />
+            </TextField>
+            <TextField
+              onChange={set_new_project_description}
+              value={new_project_description()}
+            >
+              <TextField.Label>Description</TextField.Label>
+              <TextField.TextArea />
+            </TextField>
+            <Button
+              onKeyDown={(e: KeyboardEvent) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  handle_edit_project();
+                }
+              }}
+              onMouseDown={handle_edit_project}
+              variant="success"
+            >
+              Submit
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog>
     );
-    set_project_settings_dialog_open(false);
-    set_new_project_name("");
-    refetch();
   };
 
-  const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
+  return (
+    <main class="flex flex-col pt-10 mx-auto w-[80%]">
+      <Suspense>
+        <div class="flex mb-margin justify-between items-baseline">
+          <h1 class="text-4xl leading-tight">{project_metadata()?.name}</h1>
+          <EditProjectDialog />
+        </div>
+        <Show when={project_metadata()?.description}>
+          {(description) => (
+            <>
+              <h2 class="font-bold">Description</h2>
+              <p>{description()}</p>
+            </>
+          )}
+        </Show>
+        <ul class="list-disc list-inside space-y-1">
+          <Suspense>
+            <Show when={lists()}>
+              {(all_lists) => {
+                return (
+                  <Suspense>
+                    <For each={all_lists()}>
+                      {(list) => {
+                        const cards = createAsync(() =>
+                          get_full_cards_in_list(list.id),
+                        );
+                        return (
+                          <>
+                            <div class="flex mb-margin mt-gutter justify-between items-baseline">
+                              <h2 class="font-bold">{list.name}</h2>
+                              <AddCardsDialog list_id={list.id} />
+                            </div>
+                            <div>
+                              <ul>
+                                <Suspense>
+                                  <Show when={cards()}>
+                                    {(safe_cards) => (
+                                      <CardTable
+                                        columns={card_columns}
+                                        data={safe_cards()}
+                                      />
+                                    )}
+                                  </Show>
+                                </Suspense>
+                              </ul>
+                            </div>
+                          </>
+                        );
+                      }}
+                    </For>
+                  </Suspense>
+                );
+              }}
+            </Show>
+          </Suspense>
+        </ul>
+      </Suspense>
+    </main>
+  );
+}
+
+function AddCardsDialog(props: { list_id: number }) {
+  const [dialog_open, set_dialog_open] = createSignal(false);
+  const [card_list_text, set_card_list_text] = createSignal("");
+
+  const add_cards_to_list = useAction(action_add_cards_to_list);
+
+  function handle_open() {
+    set_dialog_open(true);
+    set_card_list_text("");
+  }
+
+  async function handle_add_cards() {
+    const card_ids = await parse_pasted_cards_to_ids(card_list_text());
+    add_cards_to_list(props.list_id, card_ids);
+    set_dialog_open(false);
+  }
+
+  // TODO: move this function to a more appropriate spot
+  async function parse_pasted_cards_to_ids(
+    pasted_cards: string,
+  ): Promise<string[]> {
+    const lines = pasted_cards
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line !== "");
+
+    const card_ids: string[] = [];
+
+    for (const line of lines) {
+      // Check if the line has a quantity prefix like "4x Card Name"
+      const match = line.match(/^(\d+)(?:x\s*|\s+)(.+)$/i);
+
+      if (match) {
+        const quantity = Math.max(1, Number.parseInt(match[1]));
+        const card_name = match[2].trim();
+
+        const all_versions = await find_versions_by_exact_name(card_name);
+        card_ids.push(all_versions[0].id);
+      } else {
+        const all_versions = await find_versions_by_exact_name(line.trim());
+        if (all_versions && all_versions.length > 0) {
+          card_ids.push(all_versions[0].id); // use first printing
+        }
+      }
+    }
+
+    return card_ids;
+  }
+
+  return (
+    <Dialog onOpenChange={set_dialog_open} open={dialog_open()}>
+      <Button onMouseDown={handle_open} size="icon" variant="success">
+        <IconPlus />
+      </Button>
+      <Dialog.Content
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            handle_add_cards();
+          }
+        }}
+      >
+        <Dialog.CloseButtonX onMouseDown={() => set_dialog_open(false)} />
+        <Dialog.Header>
+          <Dialog.Title>Add Cards</Dialog.Title>
+        </Dialog.Header>
+        <div class="flex flex-col items-stretch gap-4">
+          <TextField onChange={set_card_list_text} value={card_list_text()}>
+            <TextField.Label>Paste Card List</TextField.Label>
+            <TextField.TextArea placeholder="Paste cards here, one per line..." />
+          </TextField>
+          <Button onMouseDown={handle_add_cards} variant="success">
+            Add Cards
+          </Button>
+        </div>
+      </Dialog.Content>
+    </Dialog>
+  );
+}
+
+function CardTable(props: {
+  columns: ColumnDef<
+    { metadata: CardMetadata; card: Card },
+    string | null | undefined
+  >[];
+  data: { metadata: CardMetadata; card: Card }[];
+}) {
+  const table = createSolidTable({
+    columns: props.columns,
+    get data() {
+      return props.data;
+    },
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   const [preview_show, set_preview_show] = createSignal(false);
+  const [preview_ref, set_preview_ref] = createSignal<HTMLImageElement>();
   const [preview_offset, set_preview_offset] = createSignal({ x: 0, y: 0 });
   const [preview_img_uri, set_preview_img_uri] = createSignal("");
 
-  function handle_set_preview(
-    e: MouseEvent,
-    card: ScryfallCard.AnySingleFaced,
-  ) {
+  function handle_set_preview(e: MouseEvent, card_img_uri: string) {
     const offsetX =
       e.x + preview_ref()!.getBoundingClientRect().width > window.innerWidth
         ? window.innerWidth - preview_ref()!.getBoundingClientRect().width
@@ -56,260 +326,78 @@ export function ProjectPage() {
         ? window.innerHeight - preview_ref()!.getBoundingClientRect().height
         : e.y + 10;
     set_preview_offset({ x: offsetX, y: offsetY });
-    set_preview_img_uri(card.image_uris!.normal);
+    set_preview_img_uri(card_img_uri);
   }
 
-  const TableView: Component<{ list: Card[] }> = (props) => (
-    <div class="w-full max-w-5xl">
-      <div class="border overflow-hidden">
-        <div class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b bg-gray-1 dark:bg-graydark-1">
-          {/* Header */}
-          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
-            #
-          </div>
-          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
-            Name
-          </div>
-          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
-            Mana Cost
-          </div>
-          <div class="font-medium text-gray-12 dark:text-graydark-12 p-3">
-            Tags
-          </div>
-        </div>
-
-        {/* Card list */}
-        <For each={props.list}>
-          {(card) => (
-            <div
-              class="grid grid-cols-[80px_minmax(200px,1fr)_120px_1fr] border-b last:border-b-0 hover:bg-gray-2 dark:hover:bg-graydark-2 transition-colors"
-              onMouseMove={(e) =>
-                handle_set_preview(e, card.card as ScryfallCard.AnySingleFaced)
-              }
-              onMouseOver={() => set_preview_show(true)}
-              onMouseLeave={() => set_preview_show(false)}
-              onFocus={() => {}}
-            >
-              {/* Quantity column */}
-              <div class="p-3 flex items-center cursor-pointer">
-                {card.quantity}
-              </div>
-
-              {/* Name column */}
-              <div class="p-3 flex items-center cursor-pointer">
-                {card.card.name}
-              </div>
-
-              {/* Mana Cost column */}
-              <div class="p-3 flex items-center font-mono">
-                {card.card.mana_cost || ""}
-              </div>
-
-              {/* Tags column (stub for future) */}
-              <div class="p-3 flex items-center text-gray-9 dark:text-graydark-9 italic">
-                {/* Empty for now - will hold tags in the future */}
-              </div>
-            </div>
-          )}
-        </For>
-      </div>
-
-      {/* Total count */}
-      <div class="mt-4 text-sm text-gray-11 dark:text-graydark-11">
-        Total Cards: {props.list.reduce((sum, card) => sum + card.quantity, 0)}
-      </div>
-    </div>
-  );
-
-  const DeckView: Component<{ list: Card[] }> = (props) => {
-    const type_groups: Record<string, Card[]> = {};
-
-    const get_type = (type_line: string): string => {
-      const before_subtypes = type_line.split("—")[0].trim();
-      const words = before_subtypes.split(" ");
-      return words[words.length - 1];
-    };
-
-    // Group cards by their type line
-    for (const card of props.list) {
-      if (card.card.layout !== "normal") {
-        if (!type_groups.misc) {
-          type_groups.misc = [];
-        }
-        type_groups.misc.push(card);
-      } else {
-        const type = get_type(card.card.type_line);
-        if (!type_groups[type]) {
-          type_groups[type] = [];
-        }
-        type_groups[type].push(card);
-      }
-    }
-
-    // Sort type groups by priority (creatures, instants, sorceries, etc.)
-    const type_priority = [
-      "Creature",
-      "Instant",
-      "Sorcery",
-      "Enchantment",
-      "Artifact",
-      "Planeswalker",
-      "Battle",
-      "Land",
-    ];
-    const sorted_type_keys = Object.keys(type_groups).sort((a, b) => {
-      const a_priority = type_priority.findIndex((type) => a.includes(type));
-      const b_priority = type_priority.findIndex((type) => b.includes(type));
-
-      if (a_priority === -1 && b_priority === -1) return a.localeCompare(b);
-      if (a_priority === -1) return 1;
-      if (b_priority === -1) return -1;
-
-      return a_priority - b_priority;
-    });
-
+  function CardPreview() {
     return (
-      <div class="w-full max-w-3xl">
-        <For each={sorted_type_keys}>
-          {(type_key) => (
-            <div class="mb-6">
-              <h3 class="text-lg font-medium mb-3 text-gray-12 dark:text-graydark-12">
-                {type_key} (
-                {type_groups[type_key].reduce(
-                  (sum, card) => sum + card.quantity,
-                  0,
-                )}
-                )
-              </h3>
-              <div class="space-y-1">
-                <For each={type_groups[type_key]}>
-                  {(card) => (
-                    <div
-                      class="flex items-center gap-3 p-2 hover:bg-gray-2 dark:hover:bg-graydark-2 rounded transition-colors"
-                      onMouseMove={(e) =>
-                        handle_set_preview(
-                          e,
-                          card.card as ScryfallCard.AnySingleFaced,
-                        )
-                      }
-                      onMouseOver={() => set_preview_show(true)}
-                      onMouseLeave={() => set_preview_show(false)}
-                    >
-                      <span class="w-8 text-center text-sm">
-                        {card.quantity}
-                      </span>
-                      <span class="flex-1">{card.card.name}</span>
-                      <span class="font-mono text-sm">
-                        {card.card.mana_cost || ""}
-                      </span>
-                    </div>
-                  )}
-                </For>
-              </div>
-            </div>
-          )}
-        </For>
-      </div>
-    );
-  };
-
-  return (
-    <main class="relative flex flex-col p-8">
-      <Suspense fallback="resource not loaded">
-        <h1 class="text-2xl font-medium pb-6">{project_metadata()?.name}</h1>
-        <h2 class="font-bold">Description</h2>
-        <p>{project_metadata()?.description}</p>
-        <Dialog
-          open={project_settings_dialog_open()}
-          onOpenChange={set_project_settings_dialog_open}
-          // TODO: figure out why it submits an empty string when you don't edit the name.
-        >
-          <Dialog.Trigger
-            onMouseDown={() => set_project_settings_dialog_open(true)}
-            class="
-              absolute top-8 right-8
-              px-2 py-1 rounded cursor-pointer
-              bg-grass-3 dark:bg-grassdark-3
-              hover:bg-grass-4 dark:hover:bg-grassdark-4
-            "
-          >
-            Edit
-          </Dialog.Trigger>
-          <Dialog.Portal>
-            <Dialog.Content
-              class="
-                flex flex-col items-center justify-center gap-4
-                fixed top-20 left-[50%] translate-x-[-50%]
-                px-10 py-8 rounded
-                bg-gray-3 dark:bg-graydark-3
-                text-gray-normal
-              "
-            >
-              <Dialog.Title class="text-2xl mb-4">Edit Project</Dialog.Title>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handle_edit_project();
-                }}
-                class="flex flex-col items-stretch justify-center gap-4"
-              >
-                <TextField
-                  value={new_project_name()}
-                  onChange={set_new_project_name}
-                  class="flex flex-col"
-                >
-                  <TextField.Label>Name</TextField.Label>
-                  <TextField.Input
-                    class="bg-gray-7 dark:bg-graydark-7 px-1 rounded"
-                    autocorrect="off"
-                    value={project_metadata()?.name ?? ""}
-                  />
-                </TextField>
-                <TextField
-                  value={new_project_description()}
-                  onChange={set_new_project_description}
-                  class="flex flex-col"
-                >
-                  <TextField.Label>Description</TextField.Label>
-                  <TextField.TextArea
-                    class="bg-gray-7 dark:bg-graydark-7 px-1 rounded resize-none"
-                    value={project_metadata()?.description ?? ""}
-                  />
-                </TextField>
-                <Button
-                  onMouseDown={handle_edit_project}
-                  onKeyDown={(e: KeyboardEvent) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      handle_edit_project();
-                    }
-                  }}
-                  class="
-                    px-2 py-1 rounded self-end cursor-pointer
-                    bg-grass-4 dark:bg-grassdark-4
-                    hover:bg-grass-5 dark:hover:bg-grassdark-5"
-                >
-                  Submit
-                </Button>
-              </form>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog>
-      </Suspense>
       <Show when={preview_show()}>
         <Portal>
           <img
-            ref={set_preview_ref}
+            alt="card preview"
             class="fixed aspect-[5/7] h-80 rounded-xl"
+            ref={set_preview_ref}
+            src={preview_img_uri()}
             style={{
               left: `${preview_offset()!.x}px`,
-              top: `${preview_offset()!.y}px`,
               "pointer-events": "none",
+              top: `${preview_offset()!.y}px`,
             }}
-            src={preview_img_uri()}
-            alt="card preview"
           />
         </Portal>
       </Show>
-    </main>
+    );
+  }
+
+  return (
+    <>
+      <Table>
+        <Table.Header>
+          <For each={table.getHeaderGroups()}>
+            {(header_group) => (
+              <Table.Row>
+                <For each={header_group.headers}>
+                  {(header) => (
+                    <Table.Head colSpan={header.colSpan}>
+                      <Show when={!header.isPlaceholder}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </Show>
+                    </Table.Head>
+                  )}
+                </For>
+              </Table.Row>
+            )}
+          </For>
+        </Table.Header>
+        <Table.Body>
+          <For each={table.getRowModel().rows}>
+            {(row) => (
+              <Table.Row
+                onMouseEnter={() => set_preview_show(true)}
+                onMouseLeave={() => set_preview_show(false)}
+                onMouseMove={(e) =>
+                  handle_set_preview(e, row.original.card.image_uri!)
+                }
+              >
+                <For each={row.getVisibleCells()}>
+                  {(cell) => (
+                    <Table.Cell>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </Table.Cell>
+                  )}
+                </For>
+              </Table.Row>
+            )}
+          </For>
+        </Table.Body>
+      </Table>
+      <CardPreview />
+    </>
   );
 }

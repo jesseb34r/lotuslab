@@ -21,6 +21,7 @@
 - upload decks associated with cubes
 - battlebox style collection of decks
 - sort cards by printed year
+- from shep: tag rules that apply tags when adding cards to a project
 
 ### Local database of cards
 
