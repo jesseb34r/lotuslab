@@ -72,7 +72,7 @@ create table if not exists cards (
     variation_of        text
     -- preview stats?
 
-    -- Moxcel fields?
+    -- LotusLab fields?
 );
 
 -- projects table

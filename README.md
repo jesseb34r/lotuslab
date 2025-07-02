@@ -1,4 +1,4 @@
-# Moxcel
+# LotusLab
 An offline app for editing and maintaining lists of Magic the Gathering cards.
 
 ## Project Goals
@@ -14,7 +14,7 @@ An offline app for editing and maintaining lists of Magic the Gathering cards.
 - [ ] Basic query and sort functionality within a list
 - [ ] Basic project views (cube, deck, list, etc)
 - [ ] Initial command palette implementation
-- [ ] Decide on a better name than moxcel
+- [x] Decide on a better name than moxcel
 - [x] Basic UI to view a list, use cube as default for sorting rn
 - [x] Basic edits -- add + delete
   - start with typing card names, scryfall search later
@@ -28,7 +28,7 @@ An offline app for editing and maintaining lists of Magic the Gathering cards.
 - Version Control
   - git backed
   - good user story for describing changes
-  - interface with CubeCobra so that changes/blogs show changes in Moxcel
+  - interface with CubeCobra so that changes/blogs show changes in LotusLab
   - good fork/merge/rebase UI
 - List comparison
 - scryfall-compatible search

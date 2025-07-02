@@ -1,5 +1,5 @@
 [package]
-name = "moxcel"
+name = "lotuslab"
 version = "0.0.0"
 description = "A local-first mtg list editor"
 authors = ["jesseb34r"]

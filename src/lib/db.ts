@@ -4,38 +4,38 @@ import Database from "@tauri-apps/plugin-sql";
 // actions and queries
 
 export const action_create_project = action(async (name: string) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   const new_id = await db.create_project(name);
   return json(new_id, { revalidate: get_projects.key });
 });
 
 export const action_update_project_metadata = action(
   async (id: number, name?: string, description?: string) => {
-    const db = await MoxcelDatabase.get_instance();
+    const db = await LotusLabDatabase.get_instance();
     await db.update_project_metadata(id, name, description);
     return reload({ revalidate: get_project_by_id.keyFor(id) });
   },
 );
 
 export const action_delete_project = action(async (id: number) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   await db.delete_project(id);
   return reload({ revalidate: get_projects.key });
 });
 
 export const get_projects = query(async () => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.get_projects();
 }, "get_projects");
 
 export const get_project_by_id = query(async (id: number) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.get_project_by_id(id);
 }, "get_project_by_id");
 
 export const action_create_list = action(
   async (project_id: number, name: string, description?: string) => {
-    const db = await MoxcelDatabase.get_instance();
+    const db = await LotusLabDatabase.get_instance();
     const new_id = await db.create_list(project_id, name, description);
     // Optionally revalidate project or list queries
     return json(new_id, {
@@ -46,7 +46,7 @@ export const action_create_list = action(
 
 export const action_update_list_metadata = action(
   async (id: number, name?: string, description?: string) => {
-    const db = await MoxcelDatabase.get_instance();
+    const db = await LotusLabDatabase.get_instance();
     await db.update_list_metadata(id, name, description);
     return reload({ revalidate: get_lists_by_project.keyFor(id) });
   },
@@ -54,7 +54,7 @@ export const action_update_list_metadata = action(
 
 export const action_delete_list = action(
   async (id: number, project_id: number) => {
-    const db = await MoxcelDatabase.get_instance();
+    const db = await LotusLabDatabase.get_instance();
     await db.delete_list(id);
     return reload({ revalidate: get_lists_by_project.keyFor(project_id) });
   },
@@ -62,7 +62,7 @@ export const action_delete_list = action(
 
 export const action_add_cards_to_list = action(
   async (list_id: number, card_ids: string[]) => {
-    const db = await MoxcelDatabase.get_instance();
+    const db = await LotusLabDatabase.get_instance();
     const inserted_ids: number[] = [];
     for (let id_index = 0; id_index < card_ids.length; id_index++) {
       const insertedId = await db.add_card_to_list(list_id, card_ids[id_index]);
@@ -79,7 +79,7 @@ export const action_add_cards_to_list = action(
 
 export const action_remove_card_from_list = action(
   async (id: number, list_id: number) => {
-    const db = await MoxcelDatabase.get_instance();
+    const db = await LotusLabDatabase.get_instance();
     await db.remove_card_from_list(id);
     return reload({
       revalidate: [
@@ -91,57 +91,57 @@ export const action_remove_card_from_list = action(
 );
 
 export const get_lists_by_project = query(async (project_id: number) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.get_lists_by_project(project_id);
 }, "get_lists_by_project");
 
 export const get_cards_in_list = query(async (list_id: number) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.get_cards_in_list(list_id);
 }, "get_cards_in_list");
 
 export const get_full_cards_in_list = query(async (list_id: number) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.get_full_cards_in_list(list_id);
 }, "get_full_cards_in_list");
 
 export const get_card_by_id = query(async (card_id: string) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.get_card_by_id(card_id);
 }, "get_card_by_id");
 
 export const get_all_unique_card_names = query(async () => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.get_all_unique_card_names();
 }, "get_all_unique_card_names");
 
 export const search_cards_by_name = query(async (name: string) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.search_cards_by_name(name);
 }, "query_search_cards_by_name");
 
 export const find_versions_by_exact_name = query(async (name: string) => {
-  const db = await MoxcelDatabase.get_instance();
+  const db = await LotusLabDatabase.get_instance();
   return await db.find_versions_by_exact_name(name);
 }, "find_versions_by_exact_name");
 
 // =====================================================
 // = Database Class: all actual db functions are below =
 // =====================================================
-class MoxcelDatabase {
-  private static instance: MoxcelDatabase | null = null;
+class LotusLabDatabase {
+  private static instance: LotusLabDatabase | null = null;
   private db: Database;
 
   private constructor(db: Database) {
     this.db = db;
   }
 
-  static async get_instance(): Promise<MoxcelDatabase> {
-    if (!MoxcelDatabase.instance) {
+  static async get_instance(): Promise<LotusLabDatabase> {
+    if (!LotusLabDatabase.instance) {
       const db = await Database.load("sqlite:data.db");
-      MoxcelDatabase.instance = new MoxcelDatabase(db);
+      LotusLabDatabase.instance = new LotusLabDatabase(db);
     }
-    return MoxcelDatabase.instance;
+    return LotusLabDatabase.instance;
   }
 
   // Project Operations

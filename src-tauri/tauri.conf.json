@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "moxcel",
+  "productName": "lotuslab",
   "version": "0.1.0",
-  "identifier": "me.jesseaubin.moxcel",
+  "identifier": "me.jesseaubin.lotuslab",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "moxcel",
+        "title": "LotusLab",
         "width": 800,
         "height": 600,
         "resizable": true,
