@@ -146,3 +146,9 @@ async function insert_normal_card(card: ScryfallCard.Normal, db: Database) {
     ],
   );
 }
+
+// test functions
+async function get_local_default_cards(): Promise<ScryfallCard.Any[]> {
+  const module = await import("../../test-files/default_cards.json");
+  return module.default as ScryfallCard.Any[];
+}
