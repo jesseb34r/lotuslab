@@ -1,3 +1,9 @@
+create table if not exists project_folders (
+    id          integer primary key autoincrement,
+    name        text not null,
+    id_parent   integer references project_folders(id),
+);
+
 create table if not exists projects (
     id                  integer primary key autoincrement,
     id_search           text unique,
@@ -16,11 +22,6 @@ create table if not exists project_tags (
     id_project  integer not null references projects(id) on delete cascade,
     name        text not null,
     color       text,
-);
-
-create table if not exists project_folders (
-    id          integer primary key autoincrement,
-    id_parent   integer references project_folders(id),
 );
 
 create table if not exists lists (
@@ -111,7 +112,6 @@ create table if not exists cards_core (
     is_reprint                  boolean not null default 0,
     is_reserved                 boolean not null default 0,
     layout                      text not null,
-    rarity                      text not null, -- common | uncommon | rare | special | mythic | bonus
     rank_edhrec                 integer,
     rank_edhrec_salt            integer,
     rank_pennydreadful          integer,
@@ -213,6 +213,7 @@ create table if not exists card_printings (
     is_textless                 boolean not null default 0,
     language                    text,
     oracle_text_original        text,
+    rarity                      text not null, -- common | uncommon | rare | special | mythic | bonus
     security_stamp              text,
     set_id                      text not null references sets(id),
     signature                   text,
@@ -242,7 +243,7 @@ create table if not exists card_printing_finishes (
 
 create table if not exists card_printing_availability (
     id_printing     integer not null references card_printings(id) on delete cascade,
-    game:           text, -- arena | dreamcast | mtgo | paper | shandalar
+    game            text, -- arena | dreamcast | mtgo | paper | shandalar
 );
 
 create table if not exists card_printing_face_ids (
@@ -294,4 +295,4 @@ create table if not exists sets (
     code    text not null,
     name    text not null,
     type    text not null
-)
+);
