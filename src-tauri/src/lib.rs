@@ -4,8 +4,8 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 pub fn run() {
     let migrations = vec![Migration {
         version: 1,
-        description: "create_initial_tables",
-        sql: include_str!("../migrations/001_initial_schema.sql"),
+        description: "create_tables",
+        sql: include_str!("../migrations/001_schema.sql"),
         kind: MigrationKind::Up,
     }];
 

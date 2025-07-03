@@ -579,6 +579,29 @@ class LotusLabDatabase {
   }
 }
 
+export type ProjectFolder = {
+  id: number;
+  children: (ProjectFolder | Project)[];
+};
+
+export type Project = ProjectMetadata & {
+  tags: ProjectTag[];
+  lists: List[];
+};
+
+export type ProjectMetadata = {
+  id: number;
+  id_search: string;
+  name: string;
+  format: ProjectFormat;
+  author: string;
+  created_at: string;
+  updated_at: string;
+
+  description?: string;
+  primer?: string;
+};
+
 export const project_format_options = [
   "list",
   "cube",
@@ -589,37 +612,147 @@ export const project_format_options = [
   "pauper",
   "commander",
 ] as const;
+export type ProjectFormat = (typeof project_format_options)[number];
 
-export type ProjectMetadata = {
-  id: number;
+export type ProjectTag = {
   name: string;
-  format: (typeof project_format_options)[number];
-  description?: string;
-  primer?: string;
+  color: string;
+};
+
+export type List = ListMetadata & {
+  tags: ListTag[];
+  cards: ListCard[];
 };
 
 export type ListMetadata = {
   id: number;
   name: string;
+  created_at: string;
+  updated_at: string;
   description?: string;
 };
 
-export type CardMetadata = {
-  id: number;
-  card_id: string; // reference to scryfall_id
-  list_id: number;
-  notes?: string;
+export type ListTag = {
+  name: string;
+  color: string;
 };
 
-export type Project = {
-  metadata: ProjectMetadata;
-  lists: {
-    metadata: ListMetadata;
-    cards: {
-      metadata: CardMetadata;
-    }[];
-  }[];
+export type ListCard = {
+  card: LotusLabCard;
+  notes: string;
+  tags: ListCardTag[];
 };
+
+export type ListCardTag = {
+  name: string;
+  color: string;
+};
+
+export type LotusLabCard = {};
+
+export type CardCore = {
+  // identifiers
+  id_scryfall_oracle: string;
+  name: string;
+  name_ascii?: string;
+  name_face?: string;
+
+  // gameplay fields
+  defense?: string; // battles
+  hand_modifier?: number; // vanguards. text on the db, parse to signed number
+  has_alternative_deck_limit: boolean;
+  // TODO: legality: CardLegality[];
+  life_modifier?: string; // vanguards
+  loyalty?: string; // plansewalkers. can be non-number like 'X'
+  mana_cost?: string;
+  mana_value: number;
+  mana_value_face?: number;
+  oracle_text?: string;
+  power?: string;
+  toughness?: string;
+  type_line: string;
+  types: CardType[];
+  color: CardColor;
+  color_id: CardColor;
+  color_indicator: CardColor;
+  produces: CardProducesColor;
+
+  // other fields
+  face_side?: string;
+  is_funny: boolean;
+  is_game_changer: boolean;
+  is_reprint: boolean;
+  is_reserved: boolean;
+  layout: CardLayout;
+  rarity: CardRarity;
+  rank_edhrec?: number;
+  rank_edhrec_salt?: number;
+  rank_pennydreadful?: number;
+  releast_at: string;
+
+  // lotuslab fields
+  notes_core?: string;
+};
+
+export type CardColor = {
+  is_white: boolean;
+  is_blue: boolean;
+  is_black: boolean;
+  is_red: boolean;
+  is_green: boolean;
+  count: number;
+};
+
+export type CardProducesColor = {
+  white: boolean;
+  blue: boolean;
+  black: boolean;
+  red: boolean;
+  green: boolean;
+  colorless: boolean;
+  count: number;
+};
+
+export type CardLayout =
+  | "normal"
+  | "split"
+  | "flip"
+  | "transform"
+  | "modal_dfc"
+  | "meld"
+  | "leveler"
+  | "class"
+  | "case"
+  | "saga"
+  | "adventure"
+  | "mutate"
+  | "prototype"
+  | "battle"
+  | "planar"
+  | "scheme"
+  | "vanguard"
+  | "token"
+  | "double_faced_token"
+  | "emblem"
+  | "augment"
+  | "host"
+  | "art_series"
+  | "reversible_card";
+
+export type CardRarity =
+  | "common"
+  | "uncommon"
+  | "rare"
+  | "mythic"
+  | "special"
+  | "bonus";
+
+export type CardType = {
+  kind: "super" | "card" | "sub";
+  type: string;
+};
+
+export type CardPrinting = {};
 
 export type Card = {
   scryfall_id: string;
