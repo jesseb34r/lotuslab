@@ -35,7 +35,7 @@ export const project_format_options = [
 export type ProjectFormat = (typeof project_format_options)[number];
 
 export type List = ListMetadata & {
-  tags: ListTag[];
+  tags: LotusLabTag[];
   cards: ListCard[];
 };
 
@@ -45,11 +45,6 @@ export type ListMetadata = {
   created_at: string;
   updated_at: string;
   description?: string;
-};
-
-export type ListTag = {
-  name: string;
-  color: string;
 };
 
 export type ListCard = {
