@@ -285,6 +285,11 @@ create table if not exists card_printing_promo_types (
     type            text,
 );
 
+create table if not exists card_printing_translations (
+    id_printing     integer not null references card_printings(id) on delete cascade,
+
+);
+
 create table if not exists artists (
     id      text unique not null, -- from scryfall
     name    text not null,
@@ -292,7 +297,7 @@ create table if not exists artists (
 
 create table if not exists sets (
     id      text unique not null, -- from scryfall
-    code    text not null,
+    code    text unique not null,
     name    text not null,
     type    text not null
 );

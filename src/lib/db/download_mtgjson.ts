@@ -1,4 +1,4 @@
-async function download_mtgjson_allprintings(): Promise<AllPrintingsFile> {
+export async function download_mtgjson_allprintings(): Promise<AllPrintingsFile> {
   const response = await fetch(
     "https://mtgjson.com/api/v5/AllPrintings.json.gz",
   );
@@ -12,62 +12,30 @@ async function download_mtgjson_allprintings(): Promise<AllPrintingsFile> {
   return (await unzipped_response.json()) as AllPrintingsFile;
 }
 
-type AllPrintingsFile = { meta: Meta; data: Record<string, Set> };
+export type AllPrintingsFile = { meta: Meta; data: Record<string, Set> };
 type Meta = {
   date: string;
   version: string;
 };
-type Set = {
+export type Set = {
   baseSetSize: number;
-  block?: string;
-  booster?: Record<string, BoosterConfig>;
-  cards: CardSet[];
-  cardsphereSetId?: number;
+  cards: MTGJsonCardSet[];
   code: string;
-  codeV3?: string;
-  decks?: DeckSet[];
-  isForeignOnly?: boolean;
-  isFoilOnly: boolean;
-  isNonFoilOnly?: boolean;
-  isOnlineOnly: boolean;
-  isPaperOnly?: boolean;
-  isPartialPreview?: boolean;
-  keyruneCode: string;
-  languages?: string[];
-  mcmId?: number;
-  mcmIdExtras?: number;
-  mcmName?: string;
-  mtgoCode?: string;
+  codeV3?: string; // used for a few duel decks I guess?
+  parentCode?: string; // is this different from code?
+  decks?: MTGJsonDeckSet[];
+  // isPartialPreview?: boolean;
+  // keyruneCode: string; // maybe use later, this is for the set symbol assets
+  languages?: MTGJsonLanguages[];
+  // mtgoCode?: string;
   name: string;
-  parentCode?: string;
   releaseDate: string;
-  sealedProduct?: SealedProduct[];
-  tcgplayerGroupId?: number;
-  tokens: CardToken[];
+  tokens: MTGJsonCardToken[];
   tokenSetCode?: string;
-  totalSetSize: number;
-  translations: Translations;
+  // totalSetSize: number; // don't think i need this?
   type: string;
 };
-type BoosterConfig = {
-  boosters: BoosterPack[];
-  boostersTotalWeight: number;
-  name?: string;
-  sheets: Record<string, BoosterSheet>;
-};
-type BoosterPack = {
-  contents: Partial<Record<string, number>>;
-  weight: number;
-};
-type BoosterSheet = {
-  allowDuplicates?: boolean;
-  balanceColors?: boolean;
-  cards: Record<string, number>;
-  foil: boolean;
-  fixed?: boolean;
-  totalWeight: number;
-};
-type CardSet = {
+export type MTGJsonCardSet = {
   artist?: string;
   artistIds?: string[];
   asciiName?: string;
@@ -91,7 +59,6 @@ type CardSet = {
   finishes: string[];
   flavorName?: string;
   flavorText?: string;
-  foreignData?: ForeignData[];
   frameEffects?: string[];
   frameVersion: string;
   hand?: string;
@@ -99,7 +66,7 @@ type CardSet = {
   hasContentWarning?: boolean;
   hasFoil: boolean;
   hasNonFoil: boolean;
-  identifiers: Identifiers;
+  identifiers: MTGJsonIdentifiers;
   isAlternative?: boolean;
   isFullArt?: boolean;
   isFunny?: boolean;
@@ -116,8 +83,8 @@ type CardSet = {
   keywords?: string[];
   language: string;
   layout: string;
-  leadershipSkills?: LeadershipSkills;
-  legalities: Legalities;
+  leadershipSkills?: MTGJsonLeadershipSkills;
+  legalities: MTGJsonLegalities;
   life?: string;
   loyalty?: string;
   manaCost?: string;
@@ -132,16 +99,15 @@ type CardSet = {
   power?: string;
   printings?: string[];
   promoTypes?: string[];
-  purchaseUrls: PurchaseUrls;
   rarity: string;
-  relatedCards?: RelatedCards;
+  relatedCards?: MTGJsonRelatedCards;
   rebalancedPrintings?: string[];
-  rulings?: Rulings[];
+  rulings?: MTGJsonRulings[];
   securityStamp?: string;
   setCode: string;
   side?: string;
   signature?: string;
-  sourceProducts?: SourceProducts;
+  sourceProducts?: MTGJsonSourceProducts;
   subsets?: string[];
   subtypes: string[];
   supertypes: string[];
@@ -153,49 +119,21 @@ type CardSet = {
   variations?: string[];
   watermark?: string;
 };
-type ForeignData = {
-  faceName?: string;
-  flavorText?: string;
-  identifiers: Identifiers;
-  language: string;
-  name: string;
-  text?: string;
-  type?: string;
-};
-type Identifiers = {
-  abuId?: string;
-  cardKingdomEtchedId?: string;
-  cardKingdomFoilId?: string;
-  cardKingdomId?: string;
-  cardsphereId?: string;
-  cardsphereFoilId?: string;
-  cardtraderId?: string;
-  csiId?: string;
-  mcmId?: string;
-  mcmMetaId?: string;
-  miniaturemarketId?: string;
+export type MTGJsonIdentifiers = {
   mtgArenaId?: string;
-  mtgjsonFoilVersionId?: string;
-  mtgjsonNonFoilVersionId?: string;
-  mtgjsonV4Id?: string;
-  mtgoFoilId?: string;
   mtgoId?: string;
   multiverseId?: string;
-  scgId?: string;
   scryfallId?: string;
-  scryfallCardBackId?: string;
+  // scryfallCardBackId?: string; // maybe use?
   scryfallOracleId?: string;
   scryfallIllustrationId?: string;
-  tcgplayerProductId?: string;
-  tcgplayerEtchedProductId?: string;
-  tntId?: string;
 };
-type LeadershipSkills = {
+export type MTGJsonLeadershipSkills = {
   brawl: boolean;
   commander: boolean;
   oathbreaker: boolean;
 };
-type Legalities = {
+export type MTGJsonLegalities = {
   alchemy?: string;
   brawl?: string;
   commander?: string;
@@ -220,87 +158,37 @@ type Legalities = {
   timeless?: string;
   vintage?: string;
 };
-type PurchaseUrls = {
-  cardKingdom?: string;
-  cardKingdomEtched?: string;
-  cardKingdomFoil?: string;
-  cardmarket?: string;
-  tcgplayer?: string;
-  tcgplayerEtched?: string;
-};
-type RelatedCards = {
+
+export type MTGJsonRelatedCards = {
   reverseRelated?: string[];
   spellbook?: string[];
 };
-type Rulings = {
+export type MTGJsonRulings = {
   date: string;
   text: string;
 };
-type SourceProducts = {
+export type MTGJsonSourceProducts = {
   etched: string[];
   foil: string[];
   nonfoil: string[];
 };
-type SealedProduct = {
-  cardCount?: number;
-  category?: string;
-  contents?: SealedProductContents;
-  identifiers: Identifiers;
-  name: string;
-  productSize?: number;
-  purchaseUrls: PurchaseUrls;
-  releaseDate?: string;
-  subtype: string | null;
-  uuid: string;
-};
-type SealedProductCard = {
-  foil?: boolean;
-  name: string;
-  number: string;
-  set: string;
-  uuid: string;
-};
-type SealedProductContents = {
-  card?: SealedProductCard[];
-  deck?: SealedProductDeck[];
-  other?: SealedProductOther[];
-  pack?: SealedProductPack[];
-  sealed?: SealedProductSealed[];
-  variable?: Record<"configs", SealedProductContents[]>[];
-};
-type SealedProductDeck = {
-  name: string;
-  set: string;
-};
-type SealedProductOther = {
-  name: string;
-};
-type SealedProductPack = {
+
+export type MTGJsonDeckSet = {
   code: string;
-  set: string;
-};
-type SealedProductSealed = {
-  count: number;
-  name: string;
-  set: string;
-  uuid: string;
-};
-type DeckSet = {
-  code: string;
-  commander?: CardSetDeck[];
-  mainBoard: CardSetDeck[];
+  commander?: MTGJsonCardSetDeck[];
+  mainBoard: MTGJsonCardSetDeck[];
   name: string;
   releaseDate: string | null;
   sealedProductUuids: string[] | null;
-  sideBoard: CardSetDeck[];
+  sideBoard: MTGJsonCardSetDeck[];
   type: string;
 };
-type CardSetDeck = {
+export type MTGJsonCardSetDeck = {
   count: number;
   isFoil?: boolean;
   uuid: string;
 };
-type CardToken = {
+export type MTGJsonCardToken = {
   artist?: string;
   artistIds?: string[];
   asciiName?: string;
@@ -321,7 +209,7 @@ type CardToken = {
   frameVersion: string;
   hasFoil: boolean;
   hasNonFoil: boolean;
-  identifiers: Identifiers;
+  identifiers: MTGJsonIdentifiers;
   isFullArt?: boolean;
   isFunny?: boolean;
   isOnlineOnly?: boolean;
@@ -342,7 +230,7 @@ type CardToken = {
   otherFaceIds?: string[];
   power?: string;
   promoTypes?: string[];
-  relatedCards?: RelatedCards;
+  relatedCards?: MTGJsonRelatedCards;
   reverseRelated?: string[];
   securityStamp?: string;
   setCode: string;
@@ -359,21 +247,22 @@ type CardToken = {
   uuid: string;
   watermark?: string;
 };
-type Translations = {
-  "Ancient Greek"?: string;
-  Arabic?: string;
-  "Chinese Simplified"?: string;
-  "Chinese Traditional"?: string;
-  French?: string;
-  German?: string;
-  Hebrew?: string;
-  Italian?: string;
-  Japanese?: string;
-  Korean?: string;
-  Latin?: string;
-  Phyrexian?: string;
-  "Portuguese (Brazil)"?: string;
-  Russian?: string;
-  Sanskrit?: string;
-  Spanish?: string;
-};
+
+export type MTGJsonLanguages =
+  | "Ancient Greek"
+  | "Arabic"
+  | "Chinese Simplified"
+  | "Chinese Traditional"
+  | "English"
+  | "French"
+  | "German"
+  | "Hebrew"
+  | "Italian"
+  | "Japanese"
+  | "Korean"
+  | "Latin"
+  | "Phyrexian"
+  | "Portuguese (Brazil)"
+  | "Russian"
+  | "Sanskrit"
+  | "Spanish";
